@@ -8,6 +8,7 @@ import hashlib
 from collections import OrderedDict
 
 from django.db import models
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import curry
 from django.contrib.sites.models import Site
@@ -236,8 +237,9 @@ class MetadataBase(type):
                 yield instance
 
 
+@six.add_metaclass(MetadataBase)
 class Metadata(object):
-    __metaclass__ = MetadataBase
+    pass
 
 
 def _get_metadata_model(name=None):
