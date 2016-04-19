@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.utils import six
 from django import template
 from djangoseo.seo import get_metadata, get_linked_metadata
 from django.template import VariableDoesNotExist
@@ -28,7 +29,7 @@ class MetadataNode(template.Node):
         else:
             if callable(target):
                 target = target()
-            if isinstance(target, basestring):
+            if isinstance(target, six.string_types):
                 path = target
             elif hasattr(target, 'get_absolute_url'):
                 path = target.get_absolute_url()
@@ -51,13 +52,13 @@ class MetadataNode(template.Node):
         # If the target is a django model object
         if hasattr(target, 'pk'):
             metadata = get_linked_metadata(target, self.metadata_name, context, **kwargs)
-        if not isinstance(path, basestring):
+        if not isinstance(path, six.string_types):
             path = None
         if not metadata:
             # Fetch the metadata
             try:
                 metadata = get_metadata(path, self.metadata_name, context, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 raise template.TemplateSyntaxError(e)
 
         # If a variable name is given, store the result there
@@ -65,7 +66,10 @@ class MetadataNode(template.Node):
             context.dicts[0][self.variable_name] = metadata
             return ""
         else:
-            return unicode(metadata)
+            if six.PY3:
+                return str(metadata)
+            else:
+                return unicode(metadata)
 
 
 def do_get_metadata(parser, token):
