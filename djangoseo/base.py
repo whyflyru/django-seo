@@ -171,6 +171,10 @@ class MetadataBase(type):
 
         options = Options(Meta, help_text)
 
+        # For backwards capability with Python 2
+        def cmp(a, b):
+            return (a > b) - (a < b)
+
         # Collect and sort our elements
         elements = [(key, attrs.pop(key)) for key, obj in attrs.items()
                     if isinstance(obj, MetadataField)]
