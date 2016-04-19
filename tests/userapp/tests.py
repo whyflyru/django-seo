@@ -597,8 +597,8 @@ class Definition(TransactionTestCase):
     """
 
     def test_backends(self):
-        self.assertEqual(Coverage._meta.models.keys(), ['path', 'modelinstance', 'model', 'view'])
-        self.assertEqual(WithBackends._meta.models.keys(), ['view', 'path'])
+        self.assertEqual(list(Coverage._meta.models.keys()), ['path', 'modelinstance', 'model', 'view'])
+        self.assertEqual(list(WithBackends._meta.models.keys()), ['view', 'path'])
 
     def test_help_text_direct(self):
         self.assert_help_text('help_text1', "Some help text 1.")
