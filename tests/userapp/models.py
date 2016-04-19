@@ -32,7 +32,6 @@ class Product(models.Model):
         return self.meta_title
 
 
-@python_2_unicode_compatible
 class Category(models.Model):
     name = models.CharField(max_length=255, default="M Category Name")
     page_title = models.CharField(max_length=255, default="M Category Page Title")
@@ -41,7 +40,6 @@ class Category(models.Model):
         return reverse('userapp_my_view', args=["abc"])
 
 
-@python_2_unicode_compatible
 class NoPath(models.Model):
     pass
 
