@@ -22,6 +22,7 @@ VALID_INLINE_TAGS = (
 ).split()
 
 
+# TODO: Replace to six.string_types
 if six.PY3:
     strtype = str
 else:
