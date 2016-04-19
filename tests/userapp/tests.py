@@ -31,7 +31,6 @@ from __future__ import unicode_literals
         - verbose_name(_plural): this is passed onto Django
 
 """
-import StringIO
 import hashlib
 
 from django.core.urlresolvers import reverse
