@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 from django import template
 from djangoseo.seo import get_metadata, get_linked_metadata
@@ -20,8 +21,8 @@ class MetadataNode(template.Node):
         try:
             target = self.target.resolve(context)
         except VariableDoesNotExist:
-            msg = (u"{% get_metadata %} needs some path information.\n"
-                        u"Please use RequestContext with the django.core.context_processors.request context processor.\n"
+            msg = ("{% get_metadata %} needs some path information.\n"
+                        "Please use RequestContext with the django.core.context_processors.request context processor.\n"
                         "Or provide a path or object explicitly, eg {% get_metadata for path %} or {% get_metadata for object %}")
             raise template.TemplateSyntaxError(msg)
         else:

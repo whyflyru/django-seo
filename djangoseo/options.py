@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 from collections import OrderedDict
+import sys
 
 from django.apps import apps
 
@@ -84,6 +85,10 @@ class Options(object):
         new_md_meta['unique_together'] = base._meta.unique_together
         new_md_attrs['Meta'] = type("Meta", (), new_md_meta)
         new_md_attrs['_metadata_type'] = backend.name
+
+        if sys.version_info[0] < 3:
+            md_type = str(md_type)
+
         model = type("%s%s" % (self.name, "".join(md_type.split())), (base, self.MetadataBaseModel), new_md_attrs.copy())
         self.models[backend.name] = model
         # This is a little dangerous, but because we set __module__ to __name__, the model needs tobe accessible here

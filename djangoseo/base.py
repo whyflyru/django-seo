@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
 # TODO:
 #    * Move/rename namespace polluting attributes
 #    * Documentation
@@ -121,7 +121,7 @@ class FormattedMetadata(object):
             value = None
 
         if value is None:
-            value = mark_safe(u'\n'.join(unicode(getattr(self, f)) for f, e in
+            value = mark_safe('\n'.join(unicode(getattr(self, f)) for f, e in
                                          self.__metadata._meta.elements.items() if e.head))
             if self.__cache_prefix is not None:
                 cache.set(self.__cache_prefix, value or '')
@@ -143,7 +143,7 @@ class BoundMetadataField(object):
         if self.value:
             return mark_safe(self.field.render(self.value))
         else:
-            return u""
+            return ""
 
     def __str__(self):
         return self.__unicode__().encode("ascii", "ignore")
@@ -247,10 +247,10 @@ def _get_metadata_model(name=None):
             return registry[name]
         except KeyError:
             if len(registry) == 1:
-                valid_names = u'Try using the name "%s" or simply leaving it out altogether.' % registry.keys()[0]
+                valid_names = 'Try using the name "%s" or simply leaving it out altogether.' % registry.keys()[0]
             else:
-                valid_names = u"Valid names are " + u", ".join(u'"%s"' % k for k in registry.keys())
-            raise Exception(u"Metadata definition with name \"%s\" does not exist.\n%s" % (name, valid_names))
+                valid_names = "Valid names are " + ", ".join('"%s"' % k for k in registry.keys())
+            raise Exception("Metadata definition with name \"%s\" does not exist.\n%s" % (name, valid_names))
     else:
         assert len(registry) == 1, "You must have exactly one Metadata class, if using get_metadata() without a 'name' parameter."
         return registry.values()[0]
