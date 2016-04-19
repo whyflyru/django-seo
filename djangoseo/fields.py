@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from django.db import models
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import conditional_escape
 
@@ -21,6 +22,12 @@ VALID_INLINE_TAGS = (
 ).split()
 
 
+if six.PY3:
+    strtype = str
+else:
+    strtype = basestring
+
+
 class MetadataField(object):
     creation_counter = 0
 
@@ -36,12 +43,12 @@ class MetadataField(object):
             field_kwargs = {}
         self.field_kwargs = field_kwargs
 
-        if choices and isinstance(choices[0], basestring):
+        if choices and isinstance(choices[0], strtype):
             choices = [(c, c) for c in choices]
         field_kwargs.setdefault('choices', choices)
 
         # If valid_tags is a string, tags are space separated words
-        if isinstance(valid_tags, basestring):
+        if isinstance(valid_tags, strtype):
             valid_tags = valid_tags.split()
         if valid_tags is not None:
             valid_tags = set(valid_tags)
@@ -60,10 +67,10 @@ class MetadataField(object):
                 self.help_text = _('If empty, %s') % self.populate_from.short_description
             elif isinstance(self.populate_from, Literal):
                 self.help_text = _('If empty, \"%s\" will be used.') % self.populate_from.value
-            elif isinstance(self.populate_from, basestring) and self.populate_from in cls._meta.elements:
+            elif isinstance(self.populate_from, strtype) and self.populate_from in cls._meta.elements:
                 field = cls._meta.elements[self.populate_from]
                 self.help_text = _('If empty, %s will be used.') % field.verbose_name or field.name  
-            elif isinstance(self.populate_from, basestring) and hasattr(cls, self.populate_from): 
+            elif isinstance(self.populate_from, strtype) and hasattr(cls, self.populate_from):
                 populate_from = getattr(cls, self.populate_from, None)
                 if callable(populate_from) and hasattr(populate_from, 'short_description'):
                     self.help_text = _('If empty, %s') % populate_from.short_description
