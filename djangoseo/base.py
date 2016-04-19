@@ -95,7 +95,7 @@ class FormattedMetadata(object):
         if name in self.__metadata._meta.groups:
             if value is not None:
                 return value or None
-            value = '\n'.join(unicode(BoundMetadataField(self.__metadata._meta.elements[f], self._resolve_value(f)))
+            value = '\n'.join(six.text_type(BoundMetadataField(self.__metadata._meta.elements[f], self._resolve_value(f)))
                               for f in self.__metadata._meta.groups[name]).strip()
 
         # Look for an element called "name"
@@ -121,11 +121,8 @@ class FormattedMetadata(object):
         else:
             value = None
 
-        def unicode_or_pass(x):
-            return unicode(x) if six.PY2 else x
-
         if value is None:
-            value = mark_safe('\n'.join(unicode_or_pass(getattr(self, f)) for f, e in
+            value = mark_safe('\n'.join(six.text_type(getattr(self, f)) for f, e in
                                          self.__metadata._meta.elements.items() if e.head))
             if self.__cache_prefix is not None:
                 cache.set(self.__cache_prefix, value or '')

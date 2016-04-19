@@ -440,9 +440,7 @@ class ModelBackend(MetadataBackend):
             objects = self.get_manager(options)()
 
             def __unicode__(self):
-                if six.PY2:
-                    return unicode(self._content_type)
-                return self._content_type
+                return six.text_type(self._content_type)
 
             def _process_context(self, context):
                 """ Use the given model instance as context for rendering
