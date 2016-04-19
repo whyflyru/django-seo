@@ -131,16 +131,19 @@ class BaseManager(models.Manager):
 #      editing each backend individually.
 #      This is probably going to have to be a limitataion we need to live with.
 
+
+class MetadataBackendMetaclass(type):
+    def __new__(mcs, name, bases, attrs):
+        new_class = type.__new__(mcs, name, bases, attrs)
+        backend_registry[new_class.name] = new_class
+        return new_class
+
+
+@six.add_metaclass(MetadataBackendMetaclass)
 class MetadataBackend(object):
     name = None
     verbose_name = None
     unique_together = None
-
-    class __metaclass__(type):
-        def __new__(mcs, name, bases, attrs):
-            new_class = type.__new__(mcs, name, bases, attrs)
-            backend_registry[new_class.name] = new_class
-            return new_class
 
     def get_unique_together(self, options):
         ut = []
