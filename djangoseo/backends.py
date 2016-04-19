@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 from collections import OrderedDict
 
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.db.utils import IntegrityError
 from django.conf import settings
@@ -74,7 +75,7 @@ class MetadataBaseModel(models.Model):
     @staticmethod
     def _resolve_template(value, model_instance=None, context=None):
         """ Resolves any template references in the given value. """
-        if isinstance(value, basestring) and "{" in value:
+        if isinstance(value, six.string_types) and "{" in value:
             if context is None:
                 context = Context()
             if model_instance is not None:
@@ -436,7 +437,9 @@ class ModelBackend(MetadataBackend):
             objects = self.get_manager(options)()
 
             def __unicode__(self):
-                return unicode(self._content_type)
+                if six.PY2:
+                    return unicode(self._content_type)
+                return self._content_type
 
             def _process_context(self, context):
                 """ Use the given model instance as context for rendering
