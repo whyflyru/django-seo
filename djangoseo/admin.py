@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from django.utils import six
 from django.contrib import admin
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.contrib.contenttypes.admin import GenericStackedInline
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import smart_unicode
+if six.PY3:
+    from django.utils.encoding import smart_str
+else:
+    from django.utils.encoding import smart_unicode
 from django.forms.models import fields_for_model
 from django.utils.translation import ugettext_lazy as _
 from django.utils.text import capfirst
