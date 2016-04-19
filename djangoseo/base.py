@@ -121,8 +121,11 @@ class FormattedMetadata(object):
         else:
             value = None
 
+        def unicode_or_pass(x):
+            return unicode(x) if six.PY2 else x
+
         if value is None:
-            value = mark_safe('\n'.join(unicode(getattr(self, f)) for f, e in
+            value = mark_safe('\n'.join(unicode_or_pass(getattr(self, f)) for f, e in
                                          self.__metadata._meta.elements.items() if e.head))
             if self.__cache_prefix is not None:
                 cache.set(self.__cache_prefix, value or '')
@@ -176,10 +179,14 @@ class MetadataBase(type):
             return (a > b) - (a < b)
 
         # Collect and sort our elements
-        elements = [(key, attrs.pop(key)) for key, obj in attrs.items()
+        elements = [(key, attrs.pop(key)) for key, obj in list(attrs.items())
                     if isinstance(obj, MetadataField)]
-        elements.sort(lambda x, y: cmp(x[1].creation_counter,
-                      y[1].creation_counter))
+        if six.PY3:
+            from functools import cmp_to_key
+            elements.sort(key=cmp_to_key(lambda x, y: cmp(x[1].creation_counter, y[1].creation_counter)))
+        else:
+            elements.sort(lambda x, y: cmp(x[1].creation_counter, y[1].creation_counter))
+
         elements = OrderedDict(elements)
 
         # Validation:
