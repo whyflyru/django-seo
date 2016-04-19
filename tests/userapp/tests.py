@@ -267,7 +267,7 @@ class DataSelection(TestCase):
             self.page.save()
             Coverage._meta.get_model('modelinstance').objects.get(_content_type=self.page_content_type, _object_id=self.page.id).delete()
             self.page.delete()
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception raised inappropriately: %r" % e)
 
     def test_path_change(self):
@@ -925,7 +925,7 @@ class Random(TestCase):
         num_metadata = self.Metadata.objects.all().count()
         try:
             no_path = NoPath.objects.create()
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception inappropriately raised: %r" % e)
         new_num_metadata = self.Metadata.objects.all().count()
         self.assertEqual(num_metadata, new_num_metadata)
@@ -966,7 +966,7 @@ class Admin(TestCase):
         path = '/admin/userapp/page/add/'
         try:
             response = self.client.get(path)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception raised at '%s': %s" % (path, e))
         self.assertEqual(response.status_code, 200)
 
@@ -985,7 +985,7 @@ class Admin(TestCase):
 
         try:
             response = self.client.post(path, data, follow=True)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception raised at '%s': %s" % (path, e))
         self.assertEqual(response.status_code, 200)
 
@@ -997,7 +997,7 @@ class Admin(TestCase):
 
         try:
             response = self.client.post(path, data, follow=True)
-        except Exception, e:
+        except Exception as e:
             self.fail("Exception raised at '%s': %s" % (path, e))
         self.assertEqual(response.status_code, 200)
 
@@ -1027,7 +1027,7 @@ class Admin(TestCase):
             path = '/alt-admin/userapp/%s/add/' % model
             try:
                 response = self.client.get(path)
-            except Exception, e:
+            except Exception as e:
                 self.fail("Exception raised at '%s': %s" % (path, e))
             self.assertContains(response, "seo-coveragemodelinstance-_content_type", status_code=200)
             self.assertNotContains(response, "seo-withsitesmodelinstance-_content_type")
