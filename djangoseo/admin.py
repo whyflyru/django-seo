@@ -168,8 +168,8 @@ def get_model_form(metadata_class):
 
     # Get a list of fields, with _content_type at the start
     important_fields = ['_content_type'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         _content_type = forms.ChoiceField(label=capfirst(_("model")),
@@ -197,8 +197,8 @@ def get_modelinstance_form(metadata_class):
 
     # Get a list of fields, with _content_type at the start
     important_fields = ['_content_type'] + ['_object_id'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         _content_type = forms.ModelChoiceField(
@@ -221,8 +221,8 @@ def get_path_form(metadata_class):
 
     # Get a list of fields, with _view at the start
     important_fields = ['_path'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         class Meta:
@@ -241,8 +241,8 @@ def get_view_form(metadata_class):
 
     # Get a list of fields, with _view at the start
     important_fields = ['_view'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         _view = forms.ChoiceField(label=capfirst(_("view")),
