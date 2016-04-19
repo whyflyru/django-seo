@@ -2,9 +2,9 @@
 # -*- coding: UTF-8 -*-
 
 from collections import OrderedDict
-import sys
 
 from django.apps import apps
+from django.utils import six
 
 try:
     from django.utils.text import camel_case_to_spaces
@@ -86,7 +86,7 @@ class Options(object):
         new_md_attrs['Meta'] = type("Meta", (), new_md_meta)
         new_md_attrs['_metadata_type'] = backend.name
 
-        if sys.version_info[0] < 3:
+        if six.PY2:
             md_type = str(md_type)
 
         model = type("%s%s" % (self.name, "".join(md_type.split())), (base, self.MetadataBaseModel), new_md_attrs.copy())
