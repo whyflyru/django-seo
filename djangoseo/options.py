@@ -109,6 +109,8 @@ class Options(object):
                     seo_models.extend(apps.get_models(app))
 
         # This fix the trouble on Django 1.9 when django-seo conflicts with session model
-        seo_models = [model for model in seo_models if model._meta.label != 'sessions.Session']
+        seo_models = [
+            model for model in seo_models if model._meta.model_name != 'session' and model._meta.app_label != 'sessions'
+        ]
 
         self.seo_models = seo_models
