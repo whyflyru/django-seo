@@ -884,7 +884,7 @@ class Templates(TestCase):
             This emulates the situation where there is only one metadata definition.
         """
         self._previous_registry = list(registry.items())
-        for key in registry.keys():
+        for key in list(registry.keys()):
             del registry[key]
         registry['Coverage'] = Coverage
 
