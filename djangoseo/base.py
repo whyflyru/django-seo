@@ -150,7 +150,7 @@ class BoundMetadataField(object):
 
     def __str__(self):
         if six.PY3:
-            return six.text_type(self.__unicode__())
+            return self.__unicode__()
         else:
             return six.text_type(self.__unicode__().encode("ascii", "ignore"))
 
