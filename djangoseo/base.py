@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 from django.db import models
 from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import curry
 from django.contrib.sites.models import Site
@@ -28,6 +29,7 @@ from djangoseo.backends import backend_registry, RESERVED_FIELD_NAMES
 registry = OrderedDict()
 
 
+@python_2_unicode_compatible
 class FormattedMetadata(object):
     """ Allows convenient access to selected metadata.
         Metadata for each field may be sourced from any one of the relevant instances passed.
@@ -114,7 +116,7 @@ class FormattedMetadata(object):
 
         return value or None
 
-    def __unicode__(self):
+    def __str__(self):
         """ String version of this object is the html output of head elements. """
         if self.__cache_prefix is not None:
             value = cache.get(self.__cache_prefix)
@@ -147,7 +149,10 @@ class BoundMetadataField(object):
             return ""
 
     def __str__(self):
-        return self.__unicode__().encode("ascii", "ignore")
+        if six.PY3:
+            return six.text_type(self.__unicode__())
+        else:
+            return six.text_type(self.__unicode__().encode("ascii", "ignore"))
 
 
 class MetadataBase(type):
@@ -257,13 +262,13 @@ def _get_metadata_model(name=None):
             return registry[name]
         except KeyError:
             if len(registry) == 1:
-                valid_names = 'Try using the name "%s" or simply leaving it out altogether.' % registry.keys()[0]
+                valid_names = 'Try using the name "%s" or simply leaving it out altogether.' % list(registry.keys())[0]
             else:
-                valid_names = "Valid names are " + ", ".join('"%s"' % k for k in registry.keys())
+                valid_names = "Valid names are " + ", ".join('"%s"' % k for k in list(registry.keys()))
             raise Exception("Metadata definition with name \"%s\" does not exist.\n%s" % (name, valid_names))
     else:
         assert len(registry) == 1, "You must have exactly one Metadata class, if using get_metadata() without a 'name' parameter."
-        return registry.values()[0]
+        return list(registry.values())[0]
 
 
 def get_metadata(path, name=None, context=None, site=None, language=None):
