@@ -883,7 +883,7 @@ class Templates(TestCase):
         """ Deregister any alternative metadata classes for the sake of testing.
             This emulates the situation where there is only one metadata definition.
         """
-        self._previous_registry = registry.items()
+        self._previous_registry = list(registry.items())
         for key in registry.keys():
             del registry[key]
         registry['Coverage'] = Coverage
