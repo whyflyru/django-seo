@@ -33,6 +33,7 @@ from __future__ import unicode_literals
 """
 import hashlib
 
+from django.utils import six
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 try:
@@ -114,7 +115,7 @@ class DataSelection(TestCase):
         self.assertEqual(new_count, old_count+1)
 
         # Check that the correct data is loaded
-        assert 'New Page title' not in unicode(get_metadata(path).title)
+        assert 'New Page title' not in six.text_type(get_metadata(path).title)
         Coverage._meta.get_model('modelinstance').objects.filter(_content_type=self.page_content_type, _object_id=page.id).update(title="New Page title")
         self.assertEqual(get_metadata(path).title.value, 'New Page title')
 
@@ -218,7 +219,7 @@ class DataSelection(TestCase):
         """
         path = "/abc/"
         self.assertEqual(seo_get_metadata(path, name="WithSites").title.value, None)
-        self.assertEqual(unicode(seo_get_metadata(path, name="WithSites").title), "")
+        self.assertEqual(six.text_type(seo_get_metadata(path, name="WithSites").title), "")
 
     def test_path_conflict(self):
         """ Check the crazy scenario where an existing metadata object has the same path. """
@@ -484,28 +485,28 @@ class Formatting(TestCase):
 <meta name="hs:metatag" content="A   description with &quot; interesting&#39; chars." />
 <meta name="author" content="seo" />
 <meta name="author" content="seo" />"""
-        assert unicode(self.metadata).strip() == exp.strip(), "Incorrect html:\n" + unicode(self.metadata) + "\n\n" + unicode(exp)
+        assert six.text_type(self.metadata).strip() == exp.strip(), "Incorrect html:\n" + six.text_type(self.metadata) + "\n\n" + six.text_type(exp)
 
     def test_description(self):
         """ Tests the tag2 is cleaned correctly. """
         exp = "A   description with &quot; interesting&#39; chars."
         self.assertEqual(self.metadata.description.value, exp)
         exp = '<meta name="hs:metatag" content="%s" />' % exp
-        self.assertEqual(unicode(self.metadata.description), exp)
+        self.assertEqual(six.text_type(self.metadata.description), exp)
 
     def test_keywords(self):
         """ Tests keywords are cleaned correctly. """
         exp = "Some, keywords&quot;, with,  other, chars&#39;"
         self.assertEqual(self.metadata.keywords.value, exp)
         exp = '<meta name="keywords" content="%s" />' % exp
-        self.assertEqual(unicode(self.metadata.keywords), exp)
+        self.assertEqual(six.text_type(self.metadata.keywords), exp)
 
     def test_inline_tags(self):
         """ Tests the title is cleaned correctly. """
         exp = 'The <strong>Title</strong>'
         self.assertEqual(self.metadata.title.value, exp)
         exp = '<title>%s</title>' % exp
-        self.assertEqual(unicode(self.metadata.title), exp)
+        self.assertEqual(six.text_type(self.metadata.title), exp)
 
     def test_inline_tags2(self):
         """ Tests the title is cleaned correctly. """
@@ -515,7 +516,7 @@ class Formatting(TestCase):
         exp = 'The <strong id=\"mytitle\">Title</strong>'
         self.assertEqual(metadata.title.value, exp)
         exp = '<title>%s</title>' % exp
-        self.assertEqual(unicode(metadata.title), exp)
+        self.assertEqual(six.text_type(metadata.title), exp)
 
     def test_inline_tags3(self):
         """ Tests the title is cleaned correctly. """
@@ -525,7 +526,7 @@ class Formatting(TestCase):
         exp = 'The < strong >Title</ strong >'
         self.assertEqual(metadata.title.value, exp)
         exp = '<title>%s</title>' % exp
-        self.assertEqual(unicode(metadata.title), exp)
+        self.assertEqual(six.text_type(metadata.title), exp)
 
     def test_inline_tags4(self):
         """ Tests the title is cleaned correctly. """
@@ -535,7 +536,7 @@ class Formatting(TestCase):
         exp = 'The <strong class="with&quot;inside">Title</strong>'
         self.assertEqual(metadata.title.value, exp)
         exp = '<title>%s</title>' % exp
-        self.assertEqual(unicode(metadata.title), exp)
+        self.assertEqual(six.text_type(metadata.title), exp)
 
     def test_inline_tags5(self):
         """ Tests the title is cleaned correctly. """
@@ -545,7 +546,7 @@ class Formatting(TestCase):
         exp = 'The Title <!-- with a comment -->'
         self.assertEqual(metadata.title.value, exp)
         exp = '<title>%s</title>' % exp
-        self.assertEqual(unicode(metadata.title), exp)
+        self.assertEqual(six.text_type(metadata.title), exp)
 
     def test_forbidden_tags(self):
         """ Tests the title is cleaned correctly. """
@@ -555,21 +556,21 @@ class Formatting(TestCase):
         exp = 'The &lt;div&gt;Title&lt;/div&gt;'
         self.assertEqual(metadata.title.value, exp)
         exp = '<title>%s</title>' % exp
-        self.assertEqual(unicode(metadata.title), exp)
+        self.assertEqual(six.text_type(metadata.title), exp)
 
     def test_raw1(self):
         """ Tests that raw fields in head are cleaned correctly.
         """
         exp = '<meta name="author" content="seo" />'
         self.assertEqual(self.metadata.raw1.value, exp)
-        self.assertEqual(unicode(self.metadata.raw1), exp)
+        self.assertEqual(six.text_type(self.metadata.raw1), exp)
 
     def test_raw2(self):
         """ Tests that raw fields in head are cleaned correctly.
         """
         exp = '<meta name="author" content="seo" />'
         self.assertEqual(self.metadata.raw2.value, exp)
-        self.assertEqual(unicode(self.metadata.raw2), exp)
+        self.assertEqual(six.text_type(self.metadata.raw2), exp)
 
     def test_raw3(self):
         """ Checks that raw fields aren't cleaned too enthusiastically  """
@@ -580,10 +581,10 @@ class Formatting(TestCase):
 
         exp = '<title>Raw title 1</title>'
         self.assertEqual(metadata.raw1.value, exp)
-        self.assertEqual(unicode(metadata.raw1), exp)
+        self.assertEqual(six.text_type(metadata.raw1), exp)
         exp = '<title>Raw title 2</title>'
         self.assertEqual(metadata.raw2.value, exp)
-        self.assertEqual(unicode(metadata.raw2), exp)
+        self.assertEqual(six.text_type(metadata.raw2), exp)
 
 
 class Definition(TransactionTestCase):
@@ -665,8 +666,8 @@ class MetaOptions(TestCase):
             path = '/'
             hexpath = hashlib.md5(iri_to_uri(path)).hexdigest()
 
-            #unicode(seo_get_metadata(path, name="Coverage"))
-            unicode(seo_get_metadata(path, name="WithCache"))
+            #six.text_type(seo_get_metadata(path, name="Coverage"))
+            six.text_type(seo_get_metadata(path, name="WithCache"))
 
             self.assertEqual(cache.get('djangoseo.Coverage.%s.title' % hexpath), None)
             self.assertEqual(cache.get('djangoseo.WithCache.%s.title' % hexpath), "1234")
@@ -680,8 +681,8 @@ class MetaOptions(TestCase):
             site = Site.objects.get_current()
             hexpath = hashlib.md5(iri_to_uri(site.domain+path)).hexdigest()
 
-            #unicode(seo_get_metadata(path, name="Coverage"))
-            unicode(seo_get_metadata(path, name="WithCacheSites", site=site))
+            #six.text_type(seo_get_metadata(path, name="Coverage"))
+            six.text_type(seo_get_metadata(path, name="WithCacheSites", site=site))
 
             self.assertEqual(cache.get('djangoseo.Coverage.%s.title' % hexpath), None)
             self.assertEqual(cache.get('djangoseo.WithCacheSites.%s.title' % hexpath), "1234")
@@ -694,8 +695,8 @@ class MetaOptions(TestCase):
             path = '/'
             hexpath = hashlib.md5(iri_to_uri(path)).hexdigest()
 
-            #unicode(seo_get_metadata(path, name="Coverage"))
-            unicode(seo_get_metadata(path, name="WithCacheI18n", language='de'))
+            #six.text_type(seo_get_metadata(path, name="Coverage"))
+            six.text_type(seo_get_metadata(path, name="WithCacheI18n", language='de'))
 
             self.assertEqual(cache.get('djangoseo.Coverage.%s.de.title' % hexpath), None)
             self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.en.title' % hexpath), None)
@@ -717,8 +718,8 @@ class Templates(TestCase):
 
     def test_basic(self):
         self.deregister_alternatives()
-        self.compilesTo("{% get_metadata %}", unicode(self.metadata))
-        self.compilesTo("{% get_metadata as var %}{{ var }}", unicode(self.metadata))
+        self.compilesTo("{% get_metadata %}", six.text_type(self.metadata))
+        self.compilesTo("{% get_metadata as var %}{{ var }}", six.text_type(self.metadata))
 
     def test_for_path(self):
         self.deregister_alternatives()
@@ -729,8 +730,8 @@ class Templates(TestCase):
         self.compilesTo("{%% get_metadata for \"%s\" %%}" % other_path, "<title>example.com</title>")
         self.compilesTo("{%% get_metadata for \"%s\" as var %%}{{ var }}" % other_path, "<title>example.com</title>")
 
-        self.compilesTo("{%% get_metadata for \"%s\" %%}" % path, unicode(self.metadata))
-        self.compilesTo("{%% get_metadata for \"%s\" as var %%}{{ var }}" % path, unicode(self.metadata))
+        self.compilesTo("{%% get_metadata for \"%s\" %%}" % path, six.text_type(self.metadata))
+        self.compilesTo("{%% get_metadata for \"%s\" as var %%}{{ var }}" % path, six.text_type(self.metadata))
 
     def test_for_obj(self):
         self.deregister_alternatives()
@@ -742,8 +743,8 @@ class Templates(TestCase):
         self.compilesTo("{% get_metadata for obj as var %}{{ var }}", "<title>example.com</title>")
 
         self.context = {'obj': {'get_absolute_url': lambda: path}}
-        self.compilesTo("{% get_metadata for obj %}", unicode(self.metadata))
-        self.compilesTo("{% get_metadata for obj as var %}{{ var }}", unicode(self.metadata))
+        self.compilesTo("{% get_metadata for obj %}", six.text_type(self.metadata))
+        self.compilesTo("{% get_metadata for obj as var %}{{ var }}", six.text_type(self.metadata))
 
     def test_for_obj_no_metadata(self):
         """ Checks that defaults are used when no metadata object (previously) exists.
@@ -823,23 +824,23 @@ class Templates(TestCase):
             pass
 
     def test_class_name(self):
-        self.compilesTo("{% get_metadata Coverage %}", unicode(self.metadata))
-        self.compilesTo("{% get_metadata Coverage as var %}{{ var }}", unicode(self.metadata))
+        self.compilesTo("{% get_metadata Coverage %}", six.text_type(self.metadata))
+        self.compilesTo("{% get_metadata Coverage as var %}{{ var }}", six.text_type(self.metadata))
         path = self.path
         self.context = {'obj': {'get_absolute_url': lambda: path}}
         self.path = "/another-path/"
-        self.compilesTo("{%% get_metadata Coverage for \"%s\" %%}" % path, unicode(self.metadata))
-        self.compilesTo("{%% get_metadata Coverage for \"%s\" as var %%}{{ var }}"% path, unicode(self.metadata))
-        self.compilesTo("{% get_metadata Coverage for obj %}", unicode(self.metadata))
-        self.compilesTo("{% get_metadata Coverage for obj as var %}{{ var }}", unicode(self.metadata))
+        self.compilesTo("{%% get_metadata Coverage for \"%s\" %%}" % path, six.text_type(self.metadata))
+        self.compilesTo("{%% get_metadata Coverage for \"%s\" as var %%}{{ var }}"% path, six.text_type(self.metadata))
+        self.compilesTo("{% get_metadata Coverage for obj %}", six.text_type(self.metadata))
+        self.compilesTo("{% get_metadata Coverage for obj as var %}{{ var }}", six.text_type(self.metadata))
 
     def test_variable_group(self):
         self.deregister_alternatives()
-        self.compilesTo("{% get_metadata as var %}{{ var.advanced }}", unicode(self.metadata.raw1))
+        self.compilesTo("{% get_metadata as var %}{{ var.advanced }}", six.text_type(self.metadata.raw1))
 
     def test_variable_field(self):
         self.deregister_alternatives()
-        self.compilesTo("{% get_metadata as var %}{{ var.raw1 }}", unicode(self.metadata.raw1))
+        self.compilesTo("{% get_metadata as var %}{{ var.raw1 }}", six.text_type(self.metadata.raw1))
 
     def test_variable_field_value(self):
         self.deregister_alternatives()
@@ -852,14 +853,14 @@ class Templates(TestCase):
     def test_language(self):
         WithI18n._meta.get_model('path').objects.create(_path=self.path, title="A Title", _language="de")
         metadata = seo_get_metadata(path=self.path, name="WithSites", language="de")
-        self.compilesTo('{% get_metadata WithI18n in "de" %}', unicode(metadata))
+        self.compilesTo('{% get_metadata WithI18n in "de" %}', six.text_type(metadata))
         self.compilesTo('{% get_metadata WithI18n in "en" %}', "")
 
     def test_site(self):
         new_site = Site.objects.create(domain="new-example.com", name="New example")
         WithSites._meta.get_model('path').objects.create(_path=self.path, title="A Title", _site=new_site)
         metadata = seo_get_metadata(path=self.path, name="WithSites", site=new_site)
-        self.compilesTo('{% get_metadata WithI18n on "new-example.com" %}', unicode(metadata))
+        self.compilesTo('{% get_metadata WithI18n on "new-example.com" %}', six.text_type(metadata))
         self.compilesTo('{% get_metadata WithI18n in "example.com" %}', "")
 
     def compilesTo(self, input, expected_output):
