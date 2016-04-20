@@ -108,7 +108,8 @@ class Options(object):
                 if app:
                     seo_models.extend(apps.get_models(app))
 
-        # TODO: optimize this
+        # This fix the trouble on Django 1.9 when django-seo conflicts with session model
+        # TODO: offer a more elegant solution
         seo_models = [model for model in seo_models if model._meta.model_name != 'session']
 
         self.seo_models = seo_models
