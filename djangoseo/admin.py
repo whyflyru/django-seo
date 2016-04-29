@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from django.utils import six
 from django.contrib import admin
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.contrib.contenttypes.admin import GenericStackedInline
 from django.contrib.contenttypes.models import ContentType
-if six.PY3:
-    from django.utils.encoding import smart_str
-else:
-    from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 from django.forms.models import fields_for_model
 from django.utils.translation import ugettext_lazy as _
 from django.utils.text import capfirst
@@ -163,7 +159,7 @@ def get_model_form(metadata_class):
 
     # Restrict content type choices to the models set in seo_models
     content_types = get_seo_content_types(metadata_class._meta.seo_models)
-    content_type_choices = [(x._get_pk_val(), smart_unicode(x)) for x in
+    content_type_choices = [(x._get_pk_val(), smart_str(x)) for x in
                             ContentType.objects.filter(id__in=content_types)]
 
     # Get a list of fields, with _content_type at the start
