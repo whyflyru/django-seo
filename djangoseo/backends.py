@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from django.utils import six
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
 from django.db.utils import IntegrityError
 from django.conf import settings
 from django.db import models
@@ -410,6 +411,7 @@ class ModelBackend(MetadataBackend):
             return queryset.filter(_content_type=content_type)
 
     def get_model(self, options):
+        @python_2_unicode_compatible
         class ModelMetadataBase(MetadataBaseModel):
             __instance = None
             __context = None
@@ -439,7 +441,7 @@ class ModelBackend(MetadataBackend):
 
             objects = self.get_manager(options)()
 
-            def __unicode__(self):
+            def __str__(self):
                 return six.text_type(self._content_type)
 
             def _process_context(self, context):
