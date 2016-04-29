@@ -66,8 +66,6 @@ class MetadataBaseModel(models.Model):
                 if getattr(value, 'im_self', None):
                     return value(self)
                 else:
-                    # This not work in Python 3 due to incorrect signature (2 argument)
-                    # return value(self._metadata, self)
                     return value(self._metadata)
             return value
 
