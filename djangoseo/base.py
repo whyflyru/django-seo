@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 # TODO:
 #    * Move/rename namespace polluting attributes
 #    * Documentation
@@ -132,6 +131,7 @@ class FormattedMetadata(object):
         return value
 
 
+@python_2_unicode_compatible
 class BoundMetadataField(object):
     """ An object to help provide templates with access to a "bound" metadata field. """
 
@@ -142,17 +142,11 @@ class BoundMetadataField(object):
         else:
             self.value = None
 
-    def __unicode__(self):
-        if self.value:
-            return mark_safe(self.field.render(self.value))
-        else:
-            return ""
+    def make_safe(self):
+        return mark_safe(self.field.render(self.value)) if self.value else ''
 
     def __str__(self):
-        if six.PY3:
-            return self.__unicode__()
-        else:
-            return six.text_type(self.__unicode__().encode("ascii", "ignore"))
+        return self.make_safe()
 
 
 class MetadataBase(type):
@@ -254,10 +248,10 @@ def _get_metadata_model(name=None):
             return registry[name]
         except KeyError:
             if len(registry) == 1:
-                valid_names = 'Try using the name "%s" or simply leaving it out altogether.' % list(registry.keys())[0]
+                valid_names = u'Try using the name "%s" or simply leaving it out altogether.' % list(registry.keys())[0]
             else:
-                valid_names = "Valid names are " + ", ".join('"%s"' % k for k in list(registry.keys()))
-            raise Exception("Metadata definition with name \"%s\" does not exist.\n%s" % (name, valid_names))
+                valid_names = u"Valid names are " + u", ".join(u'"%s"' % k for k in list(registry.keys()))
+            raise Exception(u"Metadata definition with name \"%s\" does not exist.\n%s" % (name, valid_names))
     else:
         assert len(registry) == 1, "You must have exactly one Metadata class, if using get_metadata() without a 'name' parameter."
         return list(registry.values())[0]

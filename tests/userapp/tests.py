@@ -77,7 +77,7 @@ class DataSelection(TestCase):
         self.product_metadata.keywords = "ModelInstance keywords"
         self.product_metadata.save()
 
-        self.page = Page.objects.create(title="Page Title", type="abc")
+        self.page = Page.objects.create(title=u"Page Title", type="abc")
         self.page_content_type = ContentType.objects.get_for_model(Page)
         self.page_metadata = Coverage._meta.get_model('modelinstance').objects.get(_content_type=self.page_content_type, _object_id=self.page.id)
         self.page_metadata.title = "Page title"
@@ -242,7 +242,7 @@ class DataSelection(TestCase):
 
         # Check the new data is available under the correct path
         metadata = get_metadata(path="/products/2/")
-        self.assertEqual(metadata.title.value, "New Title")
+        self.assertEqual(metadata.title.value, u"New Title")
 
     def test_useful_error_messages(self):
         """ Tests that the system gracefully handles a developer error
@@ -298,8 +298,8 @@ class DataSelection(TestCase):
         self.path_metadata.help_text4 = "Help Text 4"
         self.path_metadata.save()
 
-        self.assertEqual(get_metadata(path).advanced, '<title>Raw 1</title>\n<title>Raw 1</title>')
-        self.assertEqual(get_metadata(path).help_text, '''<help_text1>Help Text 1</help_text1>
+        self.assertEqual(get_metadata(path).advanced, u'<title>Raw 1</title>\n<title>Raw 1</title>')
+        self.assertEqual(get_metadata(path).help_text, u'''<help_text1>Help Text 1</help_text1>
 
 <help_text3>Help Text 3</help_text3>
 <help_text4>Help Text 4</help_text4>''')
@@ -324,8 +324,8 @@ class ValueResolution(TestCase):
         ModelMetadata = Coverage._meta.get_model('model')
         ViewMetadata = Coverage._meta.get_model('view')
 
-        self.page1 = Page.objects.create(title="MD Page One Title", type="page-one-type", content="Page one content.")
-        self.page2 = Page.objects.create(type="page-two-type", content="Page two content.")
+        self.page1 = Page.objects.create(title=u"MD Page One Title", type=u"page-one-type", content=u"Page one content.")
+        self.page2 = Page.objects.create(type=u"page-two-type", content=u"Page two content.")
 
         self.page_content_type = ContentType.objects.get_for_model(Page)
 
@@ -335,36 +335,36 @@ class ValueResolution(TestCase):
         self.metadata2 = InstanceMetadata.objects.get(_content_type=self.page_content_type, _object_id=self.page2.id)
 
         self.model_metadata = ModelMetadata(_content_type=self.page_content_type)
-        self.model_metadata.title = "MMD { Title"
-        self.model_metadata.keywords = "MMD Keywords, {{ page.type }}, more keywords"
-        self.model_metadata.description = "MMD Description for {{ page }} and {{ page }}"
+        self.model_metadata.title = u"MMD { Title"
+        self.model_metadata.keywords = u"MMD Keywords, {{ page.type }}, more keywords"
+        self.model_metadata.description = u"MMD Description for {{ page }} and {{ page }}"
         self.model_metadata.save()
 
         self.context1 = get_metadata(path=self.page1.get_absolute_url())
         self.context2 = get_metadata(path=self.page2.get_absolute_url())
 
         self.view_metadata = ViewMetadata.objects.create(_view="userapp_my_view")
-        self.view_metadata.title = "MD {{ text }} Title"
-        self.view_metadata.keywords = "MD {{ text }} Keywords"
-        self.view_metadata.description = "MD {{ text }} Description"
+        self.view_metadata.title = u"MD {{ text }} Title"
+        self.view_metadata.keywords = u"MD {{ text }} Keywords"
+        self.view_metadata.description = u"MD {{ text }} Description"
         self.view_metadata.save()
 
     def test_direct_data(self):
         """ Check data is used directly when it is given. """
-        self.assertEqual(self.context1.keywords.value, 'MD Keywords')
+        self.assertEqual(self.context1.keywords.value, u'MD Keywords')
 
     def test_populate_from_literal(self):
         # Explicit literal
-        self.assertEqual(self.context1.populate_from3.value, 'efg')
+        self.assertEqual(self.context1.populate_from3.value, u'efg')
         # Implicit literal is not evaluated (None)
         self.assertEqual(self.context1.populate_from4.value, None)
         self.assertEqual(self.context1.populate_from5.value, None)
 
     def test_populate_from_callable(self):
         # Callable given as a string
-        self.assertEqual(self.context1.populate_from1.value, 'wxy')
+        self.assertEqual(self.context1.populate_from1.value, u'wxy')
         # Callable given as callable (method)
-        self.assertEqual(self.context1.populate_from7.value, 'model instance content: Page one content.')
+        self.assertEqual(self.context1.populate_from7.value, u'model instance content: Page one content.')
 
     def test_populate_from_field(self):
         # Data direct from another field
@@ -756,7 +756,7 @@ class Templates(TestCase):
         Metadata = Coverage._meta.get_model('modelinstance')
 
         # Create a page with metadata (with a path that get_metadata won't find)
-        page = Page.objects.create(title="Page Title", type="nometadata", content="no meta data")
+        page = Page.objects.create(title=u"Page Title", type=u"nometadata", content=u"no meta data")
         content_type = ContentType.objects.get_for_model(Page)
         Metadata.objects.filter(_content_type=content_type, _object_id=page.pk).update(title="Page Title", _path="/different/")
 
@@ -967,7 +967,7 @@ class Admin(TestCase):
         try:
             response = self.client.get(path)
         except Exception as e:
-            self.fail("Exception raised at '%s': %s" % (path, e))
+            self.fail(u"Exception raised at '%s': %s" % (path, e))
         self.assertEqual(response.status_code, 200)
 
     def test_inline_add(self):
@@ -992,13 +992,13 @@ class Admin(TestCase):
         path = '/admin/djangoseo/coveragemodel/add/'
         data = {
             "title": "Testing",
-            "_content_type": '3',
+            "_content_type": u'3',
         }
 
         try:
             response = self.client.post(path, data, follow=True)
         except Exception as e:
-            self.fail("Exception raised at '%s': %s" % (path, e))
+            self.fail(u"Exception raised at '%s': %s" % (path, e))
         self.assertEqual(response.status_code, 200)
 
     def test_inline_nonadmin(self):

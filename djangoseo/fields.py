@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-from __future__ import unicode_literals
 import re
 
 from django.db import models
@@ -73,7 +72,7 @@ class MetadataField(object):
     def validate(self):
         """ Discover certain illegal configurations """
         if not self.editable:
-            assert self.populate_from is not NotSet, "If field (%s) is not editable, you must set populate_from" % self.name
+            assert self.populate_from is not NotSet, u"If field (%s) is not editable, you must set populate_from" % self.name
 
     def get_field(self):
         kwargs = self.field_kwargs
@@ -110,7 +109,7 @@ class Tag(MetadataField):
         return value.strip()
 
     def render(self, value):
-        return '<%s>%s</%s>' % (self.name, value, self.name)
+        return u'<%s>%s</%s>' % (self.name, value, self.name)
 
 
 VALID_META_NAME = re.compile(r"[A-z][A-z0-9_:.-]*$")
@@ -127,7 +126,7 @@ class MetaTag(MetadataField):
         field_kwargs.setdefault('blank', True)
 
         if name is not None:
-            assert VALID_META_NAME.match(name) is not None, "Invalid name for MetaTag: '%s'" % name
+            assert VALID_META_NAME.match(name) is not None, u"Invalid name for MetaTag: '%s'" % name
 
         super(MetaTag, self).__init__(name, head, editable, populate_from, valid_tags, choices, help_text, verbose_name, field, field_kwargs)
 
@@ -139,7 +138,7 @@ class MetaTag(MetadataField):
 
     def render(self, value):
         # TODO: HTML/XHTML?
-        return '<meta name="%s" content="%s" />' % (self.name, value)
+        return u'<meta name="%s" content="%s" />' % (self.name, value)
 
 
 class KeywordTag(MetaTag):

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-from __future__ import unicode_literals
 import importlib
 
 from django.apps import apps
