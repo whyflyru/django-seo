@@ -176,18 +176,10 @@ class MetadataBase(type):
 
         options = Options(Meta, help_text)
 
-        # For backwards capability with Python 2
-        def cmp(a, b):
-            return (a > b) - (a < b)
-
         # Collect and sort our elements
         elements = [(key, attrs.pop(key)) for key, obj in list(attrs.items())
                     if isinstance(obj, MetadataField)]
-        if six.PY3:
-            from functools import cmp_to_key
-            elements.sort(key=cmp_to_key(lambda x, y: cmp(x[1].creation_counter, y[1].creation_counter)))
-        else:
-            elements.sort(lambda x, y: cmp(x[1].creation_counter, y[1].creation_counter))
+        elements.sort(key=lambda x: x[1].creation_counter)
 
         elements = OrderedDict(elements)
 
