@@ -1,4 +1,6 @@
 # -*- coding: UTF-8 -*-
+from __future__ import unicode_literals
+
 from djangoseo import seo
 from django.db import models
 from django.contrib.sites.models import Site
@@ -10,7 +12,7 @@ def get_site_name(metadata, **kwargs):
 
 def get_model_instance_content(metadata, model_instance=None, **kwargs):
     if model_instance:
-        return u'model instance content: %s' % model_instance.content
+        return 'model instance content: %s' % model_instance.content
     return 'no model instance'
 
 

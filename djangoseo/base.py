@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # TODO:
 #    * Move/rename namespace polluting attributes
 #    * Documentation
@@ -8,6 +7,8 @@ import hashlib
 from collections import OrderedDict
 
 from django.db import models
+from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import curry
 from django.contrib.sites.models import Site
@@ -27,6 +28,7 @@ from djangoseo.backends import backend_registry, RESERVED_FIELD_NAMES
 registry = OrderedDict()
 
 
+@python_2_unicode_compatible
 class FormattedMetadata(object):
     """ Allows convenient access to selected metadata.
         Metadata for each field may be sourced from any one of the relevant instances passed.
@@ -94,7 +96,7 @@ class FormattedMetadata(object):
         if name in self.__metadata._meta.groups:
             if value is not None:
                 return value or None
-            value = '\n'.join(unicode(BoundMetadataField(self.__metadata._meta.elements[f], self._resolve_value(f)))
+            value = '\n'.join(six.text_type(BoundMetadataField(self.__metadata._meta.elements[f], self._resolve_value(f)))
                               for f in self.__metadata._meta.groups[name]).strip()
 
         # Look for an element called "name"
@@ -113,7 +115,7 @@ class FormattedMetadata(object):
 
         return value or None
 
-    def __unicode__(self):
+    def __str__(self):
         """ String version of this object is the html output of head elements. """
         if self.__cache_prefix is not None:
             value = cache.get(self.__cache_prefix)
@@ -121,7 +123,7 @@ class FormattedMetadata(object):
             value = None
 
         if value is None:
-            value = mark_safe(u'\n'.join(unicode(getattr(self, f)) for f, e in
+            value = mark_safe('\n'.join(six.text_type(getattr(self, f)) for f, e in
                                          self.__metadata._meta.elements.items() if e.head))
             if self.__cache_prefix is not None:
                 cache.set(self.__cache_prefix, value or '')
@@ -129,6 +131,7 @@ class FormattedMetadata(object):
         return value
 
 
+@python_2_unicode_compatible
 class BoundMetadataField(object):
     """ An object to help provide templates with access to a "bound" metadata field. """
 
@@ -139,14 +142,11 @@ class BoundMetadataField(object):
         else:
             self.value = None
 
-    def __unicode__(self):
-        if self.value:
-            return mark_safe(self.field.render(self.value))
-        else:
-            return u""
+    def make_safe(self):
+        return mark_safe(self.field.render(self.value)) if self.value else ''
 
     def __str__(self):
-        return self.__unicode__().encode("ascii", "ignore")
+        return self.make_safe()
 
 
 class MetadataBase(type):
@@ -171,10 +171,10 @@ class MetadataBase(type):
         options = Options(Meta, help_text)
 
         # Collect and sort our elements
-        elements = [(key, attrs.pop(key)) for key, obj in attrs.items()
+        elements = [(key, attrs.pop(key)) for key, obj in list(attrs.items())
                     if isinstance(obj, MetadataField)]
-        elements.sort(lambda x, y: cmp(x[1].creation_counter,
-                      y[1].creation_counter))
+        elements.sort(key=lambda x: x[1].creation_counter)
+
         elements = OrderedDict(elements)
 
         # Validation:
@@ -236,8 +236,9 @@ class MetadataBase(type):
                 yield instance
 
 
+@six.add_metaclass(MetadataBase)
 class Metadata(object):
-    __metaclass__ = MetadataBase
+    pass
 
 
 def _get_metadata_model(name=None):
@@ -247,13 +248,13 @@ def _get_metadata_model(name=None):
             return registry[name]
         except KeyError:
             if len(registry) == 1:
-                valid_names = u'Try using the name "%s" or simply leaving it out altogether.' % registry.keys()[0]
+                valid_names = u'Try using the name "%s" or simply leaving it out altogether.' % list(registry.keys())[0]
             else:
-                valid_names = u"Valid names are " + u", ".join(u'"%s"' % k for k in registry.keys())
+                valid_names = u"Valid names are " + u", ".join(u'"%s"' % k for k in list(registry.keys()))
             raise Exception(u"Metadata definition with name \"%s\" does not exist.\n%s" % (name, valid_names))
     else:
         assert len(registry) == 1, "You must have exactly one Metadata class, if using get_metadata() without a 'name' parameter."
-        return registry.values()[0]
+        return list(registry.values())[0]
 
 
 def get_metadata(path, name=None, context=None, site=None, language=None):

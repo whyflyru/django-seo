@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-
 from django import forms
 from django.contrib import admin
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.contrib.contenttypes.admin import GenericStackedInline
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_str
 from django.forms.models import fields_for_model
 from django.utils.translation import ugettext_lazy as _
 from django.utils.text import capfirst
@@ -160,13 +159,13 @@ def get_model_form(metadata_class):
 
     # Restrict content type choices to the models set in seo_models
     content_types = get_seo_content_types(metadata_class._meta.seo_models)
-    content_type_choices = [(x._get_pk_val(), smart_unicode(x)) for x in
+    content_type_choices = [(x._get_pk_val(), smart_str(x)) for x in
                             ContentType.objects.filter(id__in=content_types)]
 
     # Get a list of fields, with _content_type at the start
     important_fields = ['_content_type'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         _content_type = forms.ChoiceField(label=capfirst(_("model")),
@@ -194,8 +193,8 @@ def get_modelinstance_form(metadata_class):
 
     # Get a list of fields, with _content_type at the start
     important_fields = ['_content_type'] + ['_object_id'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         _content_type = forms.ModelChoiceField(
@@ -218,8 +217,8 @@ def get_path_form(metadata_class):
 
     # Get a list of fields, with _view at the start
     important_fields = ['_path'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         class Meta:
@@ -238,8 +237,8 @@ def get_view_form(metadata_class):
 
     # Get a list of fields, with _view at the start
     important_fields = ['_view'] + core_choice_fields(metadata_class)
-    _fields = important_fields + fields_for_model(model_class,
-                                                  exclude=important_fields).keys()
+    _fields = important_fields + list(fields_for_model(model_class,
+                                                  exclude=important_fields).keys())
 
     class ModelMetadataForm(forms.ModelForm):
         _view = forms.ChoiceField(label=capfirst(_("view")),

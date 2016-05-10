@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
 from collections import OrderedDict
 
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible
 from django.db.utils import IntegrityError
 from django.conf import settings
 from django.db import models
@@ -65,7 +66,7 @@ class MetadataBaseModel(models.Model):
                 if getattr(value, 'im_self', None):
                     return value(self)
                 else:
-                    return value(self._metadata, self)
+                    return value(self._metadata)
             return value
 
     def _populate_from_kwargs(self):
@@ -74,7 +75,7 @@ class MetadataBaseModel(models.Model):
     @staticmethod
     def _resolve_template(value, model_instance=None, context=None):
         """ Resolves any template references in the given value. """
-        if isinstance(value, basestring) and "{" in value:
+        if isinstance(value, six.string_types) and "{" in value:
             if context is None:
                 context = Context()
             if model_instance is not None:
@@ -130,16 +131,19 @@ class BaseManager(models.Manager):
 #      editing each backend individually.
 #      This is probably going to have to be a limitataion we need to live with.
 
+
+class MetadataBackendMetaclass(type):
+    def __new__(mcs, name, bases, attrs):
+        new_class = type.__new__(mcs, name, bases, attrs)
+        backend_registry[new_class.name] = new_class
+        return new_class
+
+
+@six.add_metaclass(MetadataBackendMetaclass)
 class MetadataBackend(object):
     name = None
     verbose_name = None
     unique_together = None
-
-    class __metaclass__(type):
-        def __new__(mcs, name, bases, attrs):
-            new_class = type.__new__(mcs, name, bases, attrs)
-            backend_registry[new_class.name] = new_class
-            return new_class
 
     def get_unique_together(self, options):
         ut = []
@@ -406,6 +410,7 @@ class ModelBackend(MetadataBackend):
             return queryset.filter(_content_type=content_type)
 
     def get_model(self, options):
+        @python_2_unicode_compatible
         class ModelMetadataBase(MetadataBaseModel):
             __instance = None
             __context = None
@@ -435,8 +440,8 @@ class ModelBackend(MetadataBackend):
 
             objects = self.get_manager(options)()
 
-            def __unicode__(self):
-                return unicode(self._content_type)
+            def __str__(self):
+                return six.text_type(self._content_type)
 
             def _process_context(self, context):
                 """ Use the given model instance as context for rendering

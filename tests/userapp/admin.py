@@ -1,4 +1,6 @@
 # -*- coding: UTF-8 -*-
+from __future__ import unicode_literals
+
 from django.contrib import admin
 
 from djangoseo.admin import register_seo_admin, get_inline, auto_register_inlines

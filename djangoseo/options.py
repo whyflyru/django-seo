@@ -4,6 +4,7 @@
 from collections import OrderedDict
 
 from django.apps import apps
+from django.utils import six
 
 try:
     from django.utils.text import camel_case_to_spaces
@@ -84,6 +85,10 @@ class Options(object):
         new_md_meta['unique_together'] = base._meta.unique_together
         new_md_attrs['Meta'] = type("Meta", (), new_md_meta)
         new_md_attrs['_metadata_type'] = backend.name
+
+        if six.PY2:
+            md_type = str(md_type)
+
         model = type("%s%s" % (self.name, "".join(md_type.split())), (base, self.MetadataBaseModel), new_md_attrs.copy())
         self.models[backend.name] = model
         # This is a little dangerous, but because we set __module__ to __name__, the model needs tobe accessible here
@@ -102,5 +107,10 @@ class Options(object):
                 app = apps.get_app_config(model_name).models_module
                 if app:
                     seo_models.extend(apps.get_models(app))
+
+        # This fix the trouble on Django 1.9 when django-seo conflicts with session model
+        seo_models = [
+            model for model in seo_models if model._meta.model_name != 'session' and model._meta.app_label != 'sessions'
+        ]
 
         self.seo_models = seo_models

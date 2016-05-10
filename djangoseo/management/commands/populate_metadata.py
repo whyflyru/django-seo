@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import warnings
 
 from django.core.management.base import BaseCommand, CommandError
