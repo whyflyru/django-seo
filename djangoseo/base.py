@@ -38,9 +38,9 @@ class FormattedMetadata(object):
         self.__metadata = metadata
         if metadata._meta.use_cache:
             if metadata._meta.use_sites and site:
-                hexpath = hashlib.md5(iri_to_uri(site.domain+path)).hexdigest()
+                hexpath = hashlib.md5(iri_to_uri(site.domain + path).encode('utf-8')).hexdigest()
             else:
-                hexpath = hashlib.md5(iri_to_uri(path)).hexdigest()
+                hexpath = hashlib.md5(iri_to_uri(path).encode('utf-8')).hexdigest()
             if metadata._meta.use_i18n:
                 self.__cache_prefix = 'djangoseo.%s.%s.%s' % (
                     self.__metadata.__class__.__name__, hexpath, language)
