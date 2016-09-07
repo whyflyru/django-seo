@@ -34,19 +34,19 @@ class FormattedMetadata(object):
         Metadata for each field may be sourced from any one of the relevant instances passed.
     """
 
-    def __init__(self, metadata, instances, path, site=None, language=None, subdomain=None):  # TODO: add subdomain
+    def __init__(self, metadata, instances, path, site=None, language=None, subdomain=None):
         self.__metadata = metadata
         if metadata._meta.use_cache:
             if metadata._meta.use_sites and site:
                 hexpath = hashlib.md5(iri_to_uri(site.domain + path).encode('utf-8')).hexdigest()
             else:
                 hexpath = hashlib.md5(iri_to_uri(path).encode('utf-8')).hexdigest()
+            prefix_bits = ['djangoseo', self.__metadata.__class__.__name__, 'hexpath']
             if metadata._meta.use_i18n:
-                self.__cache_prefix = 'djangoseo.%s.%s.%s' % (
-                    self.__metadata.__class__.__name__, hexpath, language)
-            else:
-                self.__cache_prefix = 'djangoseo.%s.%s' % (
-                    self.__metadata.__class__.__name__, hexpath)
+                prefix_bits.append(language)
+            if metadata._meta.use_subdomains:
+                prefix_bits.append(subdomain)
+            self.__cache_prefix = '.'.join(prefix_bits)
         else:
             self.__cache_prefix = None
         self.__instances_original = instances
