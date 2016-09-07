@@ -14,6 +14,7 @@ from djangoseo.systemviews import get_seo_views
 
 
 # TODO Use groups as fieldsets
+# TODO: Generate admin classes for subdomains
 
 # Varients without sites support
 

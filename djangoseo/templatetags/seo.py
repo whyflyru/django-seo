@@ -10,12 +10,13 @@ register = template.Library()
 
 
 class MetadataNode(template.Node):
-    def __init__(self, metadata_name, variable_name, target, site, language):
+    def __init__(self, metadata_name, variable_name, target, site, language, subdomain):
         self.metadata_name = metadata_name
         self.variable_name = variable_name
         self.target = template.Variable(target or 'request.path')
         self.site = site and template.Variable(site) or None
         self.language = language and template.Variable(language) or None
+        self.subdomain = template.Variable(subdomain or 'request.subdomain')
 
     def render(self, context):
         try:
@@ -46,6 +47,13 @@ class MetadataNode(template.Node):
         # If a language is given, pass that on
         if self.language:
             kwargs['language'] = self.language.resolve(context)
+
+        # If a subdomain is given, pass that on
+        if self.subdomain:
+            try:
+                kwargs['subdomain'] = self.subdomain.resolve(context)
+            except VariableDoesNotExist:
+                pass
 
         metadata = None
         # If the target is a django model object
@@ -83,7 +91,7 @@ def do_get_metadata(parser, token):
     tag_name = bits[0]
     bits = bits[1:]
     metadata_name = None
-    args = {'as': None, 'for': None, 'in': None, 'on': None}
+    args = {'as': None, 'for': None, 'in': None, 'on': None, 'under': None}
 
     # If there are an even number of bits,
     # a metadata name has been provided.
@@ -104,7 +112,8 @@ def do_get_metadata(parser, token):
         variable_name=args['as'],
         target=args['for'],
         site=args['on'],
-        language=args['in']
+        language=args['in'],
+        subdomain=args['under']
     )
 
 

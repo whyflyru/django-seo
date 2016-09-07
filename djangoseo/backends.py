@@ -84,7 +84,7 @@ class MetadataBaseModel(models.Model):
         return value
 
 
-class BaseManager(models.Manager):
+class BaseManager(models.Manager):  # TODO: refactor this
     def on_current_site(self, site=None):
         if isinstance(site, Site):
             site_id = site.id
@@ -100,6 +100,12 @@ class BaseManager(models.Manager):
         queryset = self.on_current_site(site)
         if language:
             queryset = queryset.filter(_language=language)
+        return queryset
+
+    def for_site_language_and_subdomain(self, site=None, language=None, subdomain=None):
+        queryset = self.for_site_and_language(site=site, language=language)
+        if subdomain is not None:
+            queryset = queryset.filter(_subdomain=subdomain)
         return queryset
 
 
@@ -159,9 +165,9 @@ class MetadataBackend(object):
     def get_manager(self, options):
         _get_instances = self.get_instances
 
-        class _Manager(BaseManager):
-            def get_instances(self, path, site=None, language=None, context=None):
-                queryset = self.for_site_and_language(site, language)
+        class _Manager(BaseManager):  # TODO: refactor this
+            def get_instances(self, path, site=None, language=None, context=None, subdomain=None):
+                queryset = self.for_site_language_and_subdomain(site, language, subdomain)
                 return _get_instances(queryset, path, context)
 
             if not options.use_sites:
