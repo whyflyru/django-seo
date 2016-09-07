@@ -24,7 +24,7 @@ def get_path_admin(use_site=False, use_subdomains=False):
         list_display.append('_site')
         list_filter.append('_site')
     if use_subdomains:
-        list_display.append('_site')
+        list_display.append('_subdomain')
     return type('PathMetadataAdmin', (admin.ModelAdmin, ), {
         'list_display': tuple(list_display),
         'list_filter': tuple(list_filter),
