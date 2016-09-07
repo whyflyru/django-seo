@@ -84,7 +84,7 @@ class MetadataBaseModel(models.Model):
         return value
 
 
-class BaseManager(models.Manager):  # TODO: refactor this
+class BaseManager(models.Manager):
     def on_current_site(self, site=None):
         if isinstance(site, Site):
             site_id = site.id
@@ -96,14 +96,10 @@ class BaseManager(models.Manager):  # TODO: refactor this
         where = ['_site_id IS NULL OR _site_id=%s']
         return self.get_queryset().extra(where=where, params=[site_id])
 
-    def for_site_and_language(self, site=None, language=None):
+    def by_params(self, site=None, language=None, subdomain=None):
         queryset = self.on_current_site(site)
         if language:
             queryset = queryset.filter(_language=language)
-        return queryset
-
-    def for_site_language_and_subdomain(self, site=None, language=None, subdomain=None):
-        queryset = self.for_site_and_language(site=site, language=language)
         if subdomain is not None:
             queryset = queryset.filter(_subdomain=subdomain)
         return queryset
@@ -167,14 +163,16 @@ class MetadataBackend(object):
 
         class _Manager(BaseManager):  # TODO: refactor this
             def get_instances(self, path, site=None, language=None, context=None, subdomain=None):
-                queryset = self.for_site_language_and_subdomain(site, language, subdomain)
+                queryset = self.by_params(site, language, subdomain)
                 return _get_instances(queryset, path, context)
 
             if not options.use_sites:
-                def for_site_and_language(self, site=None, language=None):
+                def by_params(self, site=None, language=None, subdomain=None):
                     queryset = self.get_queryset()
                     if language:
                         queryset = queryset.filter(_language=language)
+                    if subdomain is not None:
+                        queryset = queryset.filter(_subdomain=subdomain)
                     return queryset
         return _Manager
 
