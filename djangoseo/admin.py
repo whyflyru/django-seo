@@ -17,9 +17,9 @@ from djangoseo.systemviews import get_seo_views
 
 
 def get_path_admin(use_site=False, use_subdomains=False):
-    list_display = ['path']
-    list_filter = []
+    list_display = ['_path']
     search_fields = ['_path']
+    list_filter = []
     if use_site:
         list_display.append('_site')
         list_filter.append('_site')
