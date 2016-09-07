@@ -218,6 +218,15 @@ class PathBackend(MetadataBackend):
                     choices=settings.LANGUAGES
                 )
 
+            if options.use_subdomains:
+                _subdomain = models.CharField(
+                    _('subdomain'),
+                    max_length=100,
+                    blank=True,
+                    null=True,
+                    db_index=True
+                )
+
             objects = self.get_manager(options)()
 
             def __unicode__(self):
@@ -281,6 +290,15 @@ class ViewBackend(MetadataBackend):
                     blank=True,
                     db_index=True,
                     choices=settings.LANGUAGES
+                )
+
+            if options.use_subdomains:
+                _subdomain = models.CharField(
+                    _('subdomain'),
+                    max_length=100,
+                    blank=True,
+                    null=True,
+                    db_index=True
                 )
 
             objects = self.get_manager(options)()
@@ -353,6 +371,15 @@ class ModelInstanceBackend(MetadataBackend):
                     blank=True,
                     db_index=True,
                     choices=settings.LANGUAGES
+                )
+
+            if options.use_subdomains:
+                _subdomain = models.CharField(
+                    _('subdomain'),
+                    max_length=100,
+                    blank=True,
+                    null=True,
+                    db_index=True
                 )
 
             objects = self.get_manager(options)()
@@ -442,6 +469,15 @@ class ModelBackend(MetadataBackend):
                     blank=True,
                     db_index=True,
                     choices=settings.LANGUAGES
+                )
+
+            if options.use_subdomains:
+                _subdomain = models.CharField(
+                    _('subdomain'),
+                    max_length=100,
+                    blank=True,
+                    null=True,
+                    db_index=True
                 )
 
             objects = self.get_manager(options)()
