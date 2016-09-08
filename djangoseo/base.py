@@ -34,19 +34,19 @@ class FormattedMetadata(object):
         Metadata for each field may be sourced from any one of the relevant instances passed.
     """
 
-    def __init__(self, metadata, instances, path, site=None, language=None):
+    def __init__(self, metadata, instances, path, site=None, language=None, subdomain=None):
         self.__metadata = metadata
         if metadata._meta.use_cache:
             if metadata._meta.use_sites and site:
                 hexpath = hashlib.md5(iri_to_uri(site.domain + path).encode('utf-8')).hexdigest()
             else:
                 hexpath = hashlib.md5(iri_to_uri(path).encode('utf-8')).hexdigest()
+            prefix_bits = ['djangoseo', self.__metadata.__class__.__name__, 'hexpath']
             if metadata._meta.use_i18n:
-                self.__cache_prefix = 'djangoseo.%s.%s.%s' % (
-                    self.__metadata.__class__.__name__, hexpath, language)
-            else:
-                self.__cache_prefix = 'djangoseo.%s.%s' % (
-                    self.__metadata.__class__.__name__, hexpath)
+                prefix_bits.append(language)
+            if metadata._meta.use_subdomains:
+                prefix_bits.append(subdomain)
+            self.__cache_prefix = '.'.join(prefix_bits)
         else:
             self.__cache_prefix = None
         self.__instances_original = instances
@@ -217,12 +217,13 @@ class MetadataBase(type):
         return new_class
 
     # TODO: Move this function out of the way (subclasses will want to define their own attributes)
-    def _get_formatted_data(cls, path, context=None, site=None, language=None):
+    def _get_formatted_data(cls, path, context=None, site=None, language=None, subdomain=None):
         """ Return an object to conveniently access the appropriate values. """
-        return FormattedMetadata(cls(), cls._get_instances(path, context, site, language), path, site, language)
+        return FormattedMetadata(cls(), cls._get_instances(path, context, site, language, subdomain),
+                                 path, site, language, subdomain)
 
     # TODO: Move this function out of the way (subclasses will want to define their own attributes)
-    def _get_instances(cls, path, context=None, site=None, language=None):
+    def _get_instances(cls, path, context=None, site=None, language=None, subdomain=None):
         """ A sequence of instances to discover metadata.
             Each instance from each backend is looked up when possible/necessary.
             This is a generator to eliminate unnecessary queries.
@@ -230,7 +231,12 @@ class MetadataBase(type):
         backend_context = {'view_context': context}
 
         for model in cls._meta.models.values():
-            for instance in model.objects.get_instances(path, site, language, backend_context) or []:
+            for instance in model.objects.get_instances(
+                    path=path,
+                    site=site,
+                    language=language,
+                    subdomain=subdomain,
+                    context=backend_context) or []:
                 if hasattr(instance, '_process_context'):
                     instance._process_context(backend_context)
                 yield instance
@@ -257,12 +263,12 @@ def _get_metadata_model(name=None):
         return list(registry.values())[0]
 
 
-def get_metadata(path, name=None, context=None, site=None, language=None):
+def get_metadata(path, name=None, context=None, site=None, language=None, subdomain=None):
     metadata = _get_metadata_model(name)
-    return metadata._get_formatted_data(path, context, site, language)
+    return metadata._get_formatted_data(path, context, site, language, subdomain)
 
 
-def get_linked_metadata(obj, name=None, context=None, site=None, language=None):
+def get_linked_metadata(obj, name=None, context=None, site=None, language=None, subdomain=None):
     """ Gets metadata linked from the given object. """
     # XXX Check that 'modelinstance' and 'model' metadata are installed in backends
     # I believe that get_model() would return None if not
@@ -283,7 +289,7 @@ def get_linked_metadata(obj, name=None, context=None, site=None, language=None):
         except ModelMetadata.DoesNotExist:
             model_md = ModelMetadata(_content_type=content_type)
         instances.append(model_md)
-    return FormattedMetadata(Metadata, instances, '', site, language)
+    return FormattedMetadata(Metadata, instances, '', site, language, subdomain)
 
 
 def create_metadata_instance(metadata_class, instance):
@@ -305,7 +311,8 @@ def create_metadata_instance(metadata_class, instance):
     # Look for an existing object with this path
     language = getattr(instance, '_language', None)
     site = getattr(instance, '_site', None)
-    for md in metadata_class.objects.get_instances(path, site, language):
+    subdomain = getattr(instance, '_subdomain', None)
+    for md in metadata_class.objects.get_instances(path, site, language, subdomain):
         # If another object has the same path, remove the path.
         # It's harsh, but we need a unique path and will assume the other
         # link is outdated.
