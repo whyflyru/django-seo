@@ -56,7 +56,8 @@ from django.core.management import call_command
 from djangoseo.seo import get_metadata as seo_get_metadata
 from djangoseo.base import registry
 from userapp.models import Page, Product, Category, NoPath, Tag
-from userapp.seo import Coverage, WithSites, WithI18n, WithRedirect, WithRedirectSites, WithCache, WithCacheSites, WithCacheI18n, WithBackends
+from userapp.seo import (Coverage, WithSites, WithI18n, WithRedirect, WithRedirectSites, WithCache, WithCacheSites,
+                         WithCacheI18n, WithBackends, WithSubdomains)
 
 
 def get_metadata(path):
@@ -167,6 +168,18 @@ class DataSelection(TestCase):
         path_metadata._language = "en"
         path_metadata.save()
         self.assertEqual(seo_get_metadata(path, name="WithI18n", language="de").title.value, None)
+
+    def test_subdomains(self):
+        path = '/abc/'
+        subdomain = 'msk'
+        path_metadata = WithSubdomains._meta.get_model('path').objects.create(
+            _subdomain='msk', title='German Path title', _path=path
+        )
+        self.assertEqual(
+            seo_get_metadata(path, name='WithSubdomains', subdomain=subdomain).title.value, 'German Path title')
+        path_metadata._subdomain = 'spb'
+        path_metadata.save()
+        self.assertEqual(seo_get_metadata(path, name='WithSubdomains', subdomain=subdomain).title.value, None)
 
 #    # FUTURE feature
 #
@@ -644,6 +657,14 @@ class Definition(TransactionTestCase):
         except IntegrityError:
             transaction.rollback()
 
+        WithSubdomains._meta.get_model('path').objects.create(_subdomain='msk', title='Main page', _path='/')
+        WithSubdomains._meta.get_model('path').objects.create(_subdomain='spb', title='Main page', _path='/')
+        try:
+            WithSubdomains._meta.get_model('path').objects.create(_subdomain='msk', title='Main page', _path='/')
+            self.fail('Exception not raised when duplicate path/subdomain combination created')
+        except IntegrityError:
+            transaction.rollback()
+
 
 class MetaOptions(TestCase):
     """ Meta options (System tests)
@@ -702,6 +723,22 @@ class MetaOptions(TestCase):
             self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.en.title' % hexpath), None)
             self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.de.title' % hexpath), "1234")
             self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.de.subtitle' % hexpath), "")
+
+    def test_use_cache_i18n_subdomain(self):
+        """ Checks that the cache plays nicely with i18n.
+        """
+        if 'dummy' not in settings.CACHE_BACKEND:
+            path = '/'
+            hexpath = hashlib.md5(iri_to_uri(path)).hexdigest()
+
+            six.text_type(seo_get_metadata(path, name='WithSubdomains', language='ru', subdomain='msk'))
+
+            self.assertEqual(cache.get('djangoseo.Coverage.%s.de.msk.title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.en.msk.title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.spb.title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.spb.subtitle' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.msk.title' % hexpath), '1234')
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.msk.subtitle' % hexpath), '')
 
 
 class Templates(TestCase):
@@ -860,6 +897,13 @@ class Templates(TestCase):
         new_site = Site.objects.create(domain="new-example.com", name="New example")
         WithSites._meta.get_model('path').objects.create(_path=self.path, title="A Title", _site=new_site)
         metadata = seo_get_metadata(path=self.path, name="WithSites", site=new_site)
+        self.compilesTo('{% get_metadata WithI18n on "new-example.com" %}', six.text_type(metadata))
+        self.compilesTo('{% get_metadata WithI18n in "example.com" %}', "")
+
+    def test_subdomain(self):
+        msk = 'msk'
+        WithSubdomains._meta.get_model('path').objects.create(_path=self.path, title='A Title', _subdomain=msk)
+        metadata = seo_get_metadata(path=self.path, name='WithSubdomains', subdomain=msk)
         self.compilesTo('{% get_metadata WithI18n on "new-example.com" %}', six.text_type(metadata))
         self.compilesTo('{% get_metadata WithI18n in "example.com" %}', "")
 
