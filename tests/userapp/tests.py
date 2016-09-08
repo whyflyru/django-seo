@@ -783,6 +783,19 @@ class Templates(TestCase):
         self.compilesTo("{% get_metadata for obj %}", six.text_type(self.metadata))
         self.compilesTo("{% get_metadata for obj as var %}{{ var }}", six.text_type(self.metadata))
 
+    def test_for_subdomain(self):
+        self.deregister_alternatives()
+        path = self.path
+        self.path = "/another-path/"
+        # Where the path does not find a metadata object, defaults should be returned
+        self.context = {'obj': {'get_absolute_url': lambda: "/a-third-path/"}}
+        self.compilesTo("{% get_metadata for obj %}", "<title>example.com</title>")
+        self.compilesTo("{% get_metadata for obj as var %}{{ var }}", "<title>example.com</title>")
+
+        self.context = {'obj': {'get_absolute_url': lambda: path}}
+        self.compilesTo("{% get_metadata for obj %}", six.text_type(self.metadata))
+        self.compilesTo("{% get_metadata for obj as var %}{{ var }}", six.text_type(self.metadata))
+
     def test_for_obj_no_metadata(self):
         """ Checks that defaults are used when no metadata object (previously) exists.
             The relevant path is also removed so that the object's link to the database is used.
@@ -904,8 +917,8 @@ class Templates(TestCase):
         msk = 'msk'
         WithSubdomains._meta.get_model('path').objects.create(_path=self.path, title='A Title', _subdomain=msk)
         metadata = seo_get_metadata(path=self.path, name='WithSubdomains', subdomain=msk)
-        self.compilesTo('{% get_metadata WithI18n on "new-example.com" %}', six.text_type(metadata))
-        self.compilesTo('{% get_metadata WithI18n in "example.com" %}', "")
+        self.compilesTo('{% get_metadata WithSubdomains under "msk" %}', six.text_type(metadata))
+        self.compilesTo('{% get_metadata WithSubdomains on "msk" %}', '')
 
     def compilesTo(self, input, expected_output):
         """ Asserts that the given template string compiles to the given output.
