@@ -155,13 +155,15 @@ class MetadataBackend(object):
                 ut_set.append('_site')
             if options.use_i18n:
                 ut_set.append('_language')
+            if options.use_subdomains:
+                ut_set.append('_subdomain')
             ut.append(tuple(ut_set))
         return tuple(ut)
 
     def get_manager(self, options):
         _get_instances = self.get_instances
 
-        class _Manager(BaseManager):  # TODO: refactor this
+        class _Manager(BaseManager):
             def get_instances(self, path, site=None, language=None, context=None, subdomain=None):
                 queryset = self.by_params(site, language, subdomain)
                 return _get_instances(queryset, path, context)
