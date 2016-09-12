@@ -17,6 +17,7 @@ class Options(object):
     def __init__(self, meta, help_text=None):
         self.use_sites = meta.pop('use_sites', False)
         self.use_i18n = meta.pop('use_i18n', False)
+        self.use_subdomains = meta.pop('use_subdomains', False)
         self.use_redirect = meta.pop('use_redirect', False)
         self.use_cache = meta.pop('use_cache', False)
         self.groups = meta.pop('groups', {})

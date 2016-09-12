@@ -82,6 +82,13 @@ class WithI18n(seo.Metadata):
         use_i18n = True
 
 
+class WithSubdomains(seo.Metadata):
+    title = seo.Tag()
+
+    class Meta:
+        use_subdomains = True
+
+
 class WithRedirect(seo.Metadata):
     title = seo.Tag()
 
