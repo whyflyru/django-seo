@@ -44,7 +44,7 @@ class FormattedMetadata(object):
             prefix_bits = ['djangoseo', self.__metadata.__class__.__name__, 'hexpath']
             if metadata._meta.use_i18n:
                 prefix_bits.append(language)
-            if metadata._meta.use_subdomains:
+            if metadata._meta.use_subdomains and subdomain is not None:
                 prefix_bits.append(subdomain)
             self.__cache_prefix = '.'.join(prefix_bits)
         else:

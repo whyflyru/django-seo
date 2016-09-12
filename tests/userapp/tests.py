@@ -725,7 +725,7 @@ class MetaOptions(TestCase):
             self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.de.subtitle' % hexpath), "")
 
     def test_use_cache_i18n_subdomain(self):
-        """ Checks that the cache plays nicely with i18n.
+        """ Checks that the cache plays nicely with i18n and subdomain.
         """
         if 'dummy' not in settings.CACHE_BACKEND:
             path = '/'
@@ -739,6 +739,28 @@ class MetaOptions(TestCase):
             self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.spb.subtitle' % hexpath), None)
             self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.msk.title' % hexpath), '1234')
             self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.msk.subtitle' % hexpath), '')
+
+    def test_use_cache_i18n_with_empty_subdomain(self):
+        """
+        Checks that the cache plays nicely with i18n and subdomain, but sudomain is None.
+        """
+        if 'dummy' not in settings.CACHE_BACKEND:
+            path = '/'
+            hexpath = hashlib.md5(iri_to_uri(path)).hexdigest()
+
+            six.text_type(seo_get_metadata(path, name='WithSubdomains', language='ru', subdomain=None))
+
+            self.assertEqual(cache.get('djangoseo.Coverage.%s.de.title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.en.title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.title' % hexpath), '1234')
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru.subtitle' % hexpath), '')
+
+            six.text_type(seo_get_metadata(path, name='WithSubdomains', language='ru', subdomain=''))
+
+            self.assertEqual(cache.get('djangoseo.Coverage.%s.de..title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithCacheI18n.%s.en..title' % hexpath), None)
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru..title' % hexpath), '1234')
+            self.assertEqual(cache.get('djangoseo.WithSubdomains.%s.ru..subtitle' % hexpath), '')
 
 
 class Templates(TestCase):
