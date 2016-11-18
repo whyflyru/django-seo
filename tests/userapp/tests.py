@@ -46,13 +46,16 @@ from django.contrib.sites.models import Site
 from django.contrib.redirects.models import Redirect
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db import IntegrityError, transaction, OperationalError
+from django.db import models, IntegrityError, transaction, OperationalError
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import Template, RequestContext, TemplateSyntaxError
 from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
 from django.core.management import call_command
+from django.apps import apps
+from django.contrib import admin
 
+from djangoseo.utils import create_dynamic_model, register_model_in_admin
 from djangoseo.seo import get_metadata as seo_get_metadata
 from djangoseo.base import registry
 from userapp.models import Page, Product, Category, NoPath, Tag
@@ -1111,3 +1114,58 @@ class Admin(TestCase):
             self.assertContains(response, "seo-coveragemodelinstance-_content_type", status_code=200)
             self.assertNotContains(response, "seo-withsitesmodelinstance-_content_type")
             self.assertContains(response, "seo-withseomodelsmodelinstance-_content_type", status_code=200)
+
+
+class CreateDynamicModelTest(TestCase):
+    model_name = 'Dog'
+    attrs = {
+        'name': models.CharField(max_length=100),
+        'breed': models.CharField(max_length=250),
+        'age': models.IntegerField()
+    }
+
+    def setUp(self):
+        self.model = create_dynamic_model(self.model_name, **self.attrs)
+
+    def test_instance(self):
+        self.assertTrue(issubclass(self.model, models.Model))
+
+    def test_model_name(self):
+        self.assertNotEquals(self.model._meta.model_name.lower(), self.model_name)
+
+    def test_model_fields(self):
+        received_fields = self.model._meta.get_all_field_names()
+        expected_fields = ['id'] + list(self.attrs.keys())
+        self.assertSetEqual(set(received_fields), set(expected_fields))
+
+    def test_field_instances(self):
+        self.assertIsInstance(self.model._meta.get_field('name'), models.CharField)
+        self.assertIsInstance(self.model._meta.get_field('breed'), models.CharField)
+        self.assertIsInstance(self.model._meta.get_field('age'), models.IntegerField)
+
+    def test_magic_attributes(self):
+        self.assertTrue(hasattr(self.model, '__module__'))
+        self.assertTrue(hasattr(self.model, '__dynamic__'))
+
+    def test_module_name(self):
+        self.assertEqual(self.model.__module__, 'djangoseo.models')
+
+    def tearDown(self):
+        del apps.all_models['djangoseo']['dog']
+
+
+class RegisterModelInAdminTest(TestCase):
+    model_name = 'Animal'
+    attrs = {
+        'name': models.CharField(max_length=250),
+    }
+
+    def setUp(self):
+        self.model = create_dynamic_model(self.model_name, **self.attrs)
+        register_model_in_admin(self.model)
+
+    def test(self):
+        self.assertIn(self.model, admin.site._registry)
+
+    def tearDown(self):
+        del apps.all_models['djangoseo']['animal']

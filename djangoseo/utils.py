@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 import logging
 import re
+import importlib
 
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape
-from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver
+from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver, clear_url_caches
+from django.conf import settings
+from django.db import models
+from django.utils import six
 
 
 class NotSet(object):
@@ -109,6 +112,7 @@ def _get_seo_content_types(seo_models):
     """ Returns a list of content types from the models defined in settings
     (SEO_MODELS)
     """
+    from django.contrib.contenttypes.models import ContentType
     try:
         return [ContentType.objects.get_for_model(m).id for m in seo_models]
     except: # previously caught DatabaseError
@@ -118,3 +122,40 @@ def _get_seo_content_types(seo_models):
 
 def get_seo_content_types(seo_models):
     return lazy(_get_seo_content_types, list)(seo_models)
+
+
+def _reload_urlconf():
+    """
+    Reload Django URL configuration and clean caches
+    """
+    module = importlib.import_module(settings.ROOT_URLCONF)
+    if six.PY2:
+        reload(module)
+    else:
+        importlib.reload(module)
+    clear_url_caches()
+
+
+def register_model_in_admin(model):
+    """
+    Register model in Django admin interface
+    """
+    from django.contrib import admin
+    admin.site.register(model)
+
+    _reload_urlconf()
+
+
+def create_dynamic_model(model_name, app_label='djangoseo', **attrs):
+    """
+    Create dynamic Django model
+    """
+    module_name = '%s.models' % app_label
+    default_attrs = {
+        '__module__': module_name,
+        '__dynamic__': True
+    }
+    attrs.update(default_attrs)
+    if six.PY2:
+        model_name = str(model_name)
+    return type(model_name, (models.Model,), attrs)
