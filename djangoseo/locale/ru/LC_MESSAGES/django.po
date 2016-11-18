@@ -73,8 +73,8 @@ msgstr "Шаблоны перенаправления"
 
 #: models.py:42
 msgid "URL pattern"
-msgstr "URL перенаправления"
+msgstr "шаблон URL"
 
 #: models.py:51
 msgid "redirect path"
-msgstr "адрес перенаправления"
+msgstr "адрес для перенаправления"
