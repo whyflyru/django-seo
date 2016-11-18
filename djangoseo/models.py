@@ -35,7 +35,7 @@ def setup():
 
         class Meta:
             verbose_name = _('Redirect pattern')
-            verbose_name_plural = 'Redirect patterns'
+            verbose_name_plural = _('Redirect patterns')
 
         RedirectPattern = create_dynamic_model('RedirectPattern', **{
             'url_pattern': models.CharField(
