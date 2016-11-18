@@ -58,6 +58,7 @@ from django.contrib import admin
 from djangoseo.utils import create_dynamic_model, register_model_in_admin
 from djangoseo.seo import get_metadata as seo_get_metadata
 from djangoseo.base import registry
+from djangoseo.models import RedirectPattern
 from userapp.models import Page, Product, Category, NoPath, Tag
 from userapp.seo import (Coverage, WithSites, WithI18n, WithRedirect, WithRedirectSites, WithCache, WithCacheSites,
                          WithCacheI18n, WithBackends, WithSubdomains)
@@ -1169,3 +1170,44 @@ class RegisterModelInAdminTest(TestCase):
 
     def tearDown(self):
         del apps.all_models['djangoseo']['animal']
+
+
+class RedirectsMiddlewareTest(TestCase):
+
+    def test_create_redirect(self):
+        current_site = Site.objects.get_current()
+        product_path = reverse('userapp_product_detail', args=('123', ))
+
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+
+        redirect_path = reverse('userapp_page_detail', args=('product',))
+        redirect_pattern = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site
+        )
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.old_path, product_path)
+        self.assertEqual(redirect.new_path, redirect_path)
+
+        redirect.delete()
+
+        redirect_pattern.subdomain = 'msk'
+        redirect_pattern.save()
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Redirect.objects.count(), 0)
+
+        another_site = Site.objects.create(
+            domain='example.net',
+            name='example.net'
+        )
+        redirect_pattern.site = another_site
+        redirect_pattern.save()
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Redirect.objects.count(), 0)

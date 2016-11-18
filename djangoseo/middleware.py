@@ -14,7 +14,7 @@ class RedirectsMiddleware(object):
         if not getattr(settings, 'SEO_USE_REDIRECTS', False):
             return
 
-        if isinstance(exception, Http404):
+        if request.method == 'GET' and isinstance(exception, Http404):
             full_path = request.get_full_path()
             current_site = get_current_site(request)
             subdomain = getattr(request, 'subdomain', '')
