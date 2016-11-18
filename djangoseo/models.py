@@ -55,7 +55,8 @@ def setup():
                 verbose_name=_('subdomain'),
                 max_length=250,
                 blank=True,
-                null=True
+                null=True,
+                default=''
             ),
             '__str__': magic_str_method,
             'Meta': Meta
