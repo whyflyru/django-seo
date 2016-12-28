@@ -41,7 +41,7 @@ class FormattedMetadata(object):
                 hexpath = hashlib.md5(iri_to_uri(site.domain + path).encode('utf-8')).hexdigest()
             else:
                 hexpath = hashlib.md5(iri_to_uri(path).encode('utf-8')).hexdigest()
-            prefix_bits = ['djangoseo', self.__metadata.__class__.__name__, 'hexpath']
+            prefix_bits = ['djangoseo', self.__metadata.__class__.__name__, hexpath]
             if metadata._meta.use_i18n:
                 prefix_bits.append(language)
             if metadata._meta.use_subdomains and subdomain is not None:
