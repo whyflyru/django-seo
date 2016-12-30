@@ -5,6 +5,7 @@ import importlib
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.contrib import admin
 
 from .utils import create_dynamic_model, register_model_in_admin
 
@@ -67,7 +68,14 @@ def setup():
             'Meta': Meta
         })
 
-        register_model_in_admin(RedirectPattern)
+        RedirectPatternAdmin = type('RedirectPatternAdmin', (admin.ModelAdmin,), {
+            'list_display': ['url_pattern', 'redirect_path', 'site', 'subdomain', 'all_subdomains'],
+            'list_display_links': ['url_pattern'],
+            'list_filter': ['all_subdomains'],
+            'search_fields': ['redirect_path'],
+        })
+
+        register_model_in_admin(RedirectPattern, RedirectPatternAdmin)
 
     from djangoseo.base import register_signals
     register_signals()

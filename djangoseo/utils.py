@@ -136,12 +136,12 @@ def _reload_urlconf():
     clear_url_caches()
 
 
-def register_model_in_admin(model):
+def register_model_in_admin(model, admin_class=None):
     """
     Register model in Django admin interface
     """
     from django.contrib import admin
-    admin.site.register(model)
+    admin.site.register(model, admin_class)
 
     _reload_urlconf()
 
