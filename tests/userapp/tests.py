@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.http import Http404
+
+from djangoseo.middleware import RedirectsMiddleware
+from .views import product_detail
+
 """ Test suite for SEO framework.
 
     It is divided into 7 sections:
@@ -40,7 +45,7 @@ try:
     from django.test import TransactionTestCase
 except ImportError:
     TransactionTestCase = TestCase
-from django.test.client import FakePayload
+from django.test.client import FakePayload, RequestFactory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.contrib.redirects.models import Redirect
@@ -1175,18 +1180,29 @@ class RegisterModelInAdminTest(TestCase):
 class RedirectsMiddlewareTest(TestCase):
 
     def test_create_redirect(self):
+        middleware = RedirectsMiddleware()
+        request_factory = RequestFactory()
         current_site = Site.objects.get_current()
-        product_path = reverse('userapp_product_detail', args=('123', ))
+        product_id = '123'
+        product_path = reverse('userapp_product_detail', args=(product_id, ))
 
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
 
         redirect_path = reverse('userapp_page_detail', args=('product',))
-        redirect_pattern = RedirectPattern.objects.create(
+        redirect_pattern1 = RedirectPattern.objects.create(
             url_pattern='/products/(\d+)/',
             redirect_path=redirect_path,
             site=current_site
         )
+        redirect_pattern2 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site,
+            all_subdomains=True,
+        )
+
+        # main scenario
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(Redirect.objects.count(), 1)
@@ -1194,20 +1210,33 @@ class RedirectsMiddlewareTest(TestCase):
         self.assertEqual(redirect.old_path, product_path)
         self.assertEqual(redirect.new_path, redirect_path)
 
+        # with subdomain
         redirect.delete()
+        redirect_pattern1.subdomain = 'msk'
+        redirect_pattern1.save()
+        request = request_factory.get(product_path)
+        request.subdomain = 'msk'
+        try:
+            product_detail(request, product_id)
+        except Http404 as e:
+            middleware.process_exception(request, e)
+        self.assertEqual(Redirect.objects.count(), 1)
 
-        redirect_pattern.subdomain = 'msk'
-        redirect_pattern.save()
+        # all subdomain flag
+        Redirect.objects.first().delete()
         response = self.client.get(product_path)
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(Redirect.objects.count(), 0)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect_pattern2.delete()
+        Redirect.objects.first().delete()
 
+        # with another site
         another_site = Site.objects.create(
             domain='example.net',
             name='example.net'
         )
-        redirect_pattern.site = another_site
-        redirect_pattern.save()
+        redirect_pattern1.site = another_site
+        redirect_pattern1.save()
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Redirect.objects.count(), 0)

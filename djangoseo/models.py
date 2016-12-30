@@ -58,6 +58,11 @@ def setup():
                 null=True,
                 default=''
             ),
+            'all_subdomains': models.BooleanField(
+                verbose_name=_('all subdomains'),
+                default=False,
+                help_text=_('Pattern works for all subdomains')
+            ),
             '__str__': magic_str_method,
             'Meta': Meta
         })

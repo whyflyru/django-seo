@@ -3,6 +3,7 @@ from django.conf import settings
 
 from django.contrib.redirects.models import Redirect
 from django.contrib.sites.shortcuts import get_current_site
+from django.db.models import Q
 from django.http import Http404
 
 from .models import RedirectPattern
@@ -19,7 +20,10 @@ class RedirectsMiddleware(object):
             current_site = get_current_site(request)
             subdomain = getattr(request, 'subdomain', '')
 
-            redirect_patterns = RedirectPattern.objects.filter(site=current_site, subdomain=subdomain)
+            redirect_patterns = RedirectPattern.objects.filter(
+                Q(site=current_site),
+                Q(subdomain=subdomain) | Q(all_subdomains=True)
+            ).order_by('all_subdomains')
 
             for redirect_pattern in redirect_patterns:
                 if re.match(redirect_pattern.url_pattern, full_path):
@@ -28,4 +32,5 @@ class RedirectsMiddleware(object):
                         old_path=full_path,
                         new_path=redirect_pattern.redirect_path
                     )
+                    break
         return

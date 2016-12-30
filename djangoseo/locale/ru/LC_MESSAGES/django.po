@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-11-18 20:03+0500\n"
+"POT-Creation-Date: 2016-12-30 12:47+0500\n"
 "Last-Translator: Adrian Tangochin <tangochin@yandex.ru>\n"
 "Language-Team: Russian\n"
 "Language: \n"
@@ -78,3 +78,11 @@ msgstr "шаблон URL"
 #: models.py:51
 msgid "redirect path"
 msgstr "адрес для перенаправления"
+
+#: models.py:62
+msgid "all subdomains"
+msgstr "все поддомены"
+
+#: models.py:64
+msgid "Pattern works for all subdomains"
+msgstr "Шаблон работает для всех поддоменов"
