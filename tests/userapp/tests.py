@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from django.http import Http404
+
+from djangoseo.middleware import RedirectsMiddleware
+from .views import product_detail
+
 """ Test suite for SEO framework.
 
     It is divided into 7 sections:
@@ -40,21 +45,25 @@ try:
     from django.test import TransactionTestCase
 except ImportError:
     TransactionTestCase = TestCase
-from django.test.client import FakePayload
+from django.test.client import FakePayload, RequestFactory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.contrib.redirects.models import Redirect
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.db import IntegrityError, transaction, OperationalError
+from django.db import models, IntegrityError, transaction, OperationalError
 from django.core.handlers.wsgi import WSGIRequest
 from django.template import Template, RequestContext, TemplateSyntaxError
 from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
 from django.core.management import call_command
+from django.apps import apps
+from django.contrib import admin
 
+from djangoseo.utils import create_dynamic_model, register_model_in_admin
 from djangoseo.seo import get_metadata as seo_get_metadata
 from djangoseo.base import registry
+from djangoseo.models import RedirectPattern
 from userapp.models import Page, Product, Category, NoPath, Tag
 from userapp.seo import (Coverage, WithSites, WithI18n, WithRedirect, WithRedirectSites, WithCache, WithCacheSites,
                          WithCacheI18n, WithBackends, WithSubdomains)
@@ -1111,3 +1120,123 @@ class Admin(TestCase):
             self.assertContains(response, "seo-coveragemodelinstance-_content_type", status_code=200)
             self.assertNotContains(response, "seo-withsitesmodelinstance-_content_type")
             self.assertContains(response, "seo-withseomodelsmodelinstance-_content_type", status_code=200)
+
+
+class CreateDynamicModelTest(TestCase):
+    model_name = 'Dog'
+    attrs = {
+        'name': models.CharField(max_length=100),
+        'breed': models.CharField(max_length=250),
+        'age': models.IntegerField()
+    }
+
+    def setUp(self):
+        self.model = create_dynamic_model(self.model_name, **self.attrs)
+
+    def test_instance(self):
+        self.assertTrue(issubclass(self.model, models.Model))
+
+    def test_model_name(self):
+        self.assertNotEquals(self.model._meta.model_name.lower(), self.model_name)
+
+    def test_model_fields(self):
+        received_fields = self.model._meta.get_all_field_names()
+        expected_fields = ['id'] + list(self.attrs.keys())
+        self.assertSetEqual(set(received_fields), set(expected_fields))
+
+    def test_field_instances(self):
+        self.assertIsInstance(self.model._meta.get_field('name'), models.CharField)
+        self.assertIsInstance(self.model._meta.get_field('breed'), models.CharField)
+        self.assertIsInstance(self.model._meta.get_field('age'), models.IntegerField)
+
+    def test_magic_attributes(self):
+        self.assertTrue(hasattr(self.model, '__module__'))
+        self.assertTrue(hasattr(self.model, '__dynamic__'))
+
+    def test_module_name(self):
+        self.assertEqual(self.model.__module__, 'djangoseo.models')
+
+    def tearDown(self):
+        del apps.all_models['djangoseo']['dog']
+
+
+class RegisterModelInAdminTest(TestCase):
+    model_name = 'Animal'
+    attrs = {
+        'name': models.CharField(max_length=250),
+    }
+
+    def setUp(self):
+        self.model = create_dynamic_model(self.model_name, **self.attrs)
+        register_model_in_admin(self.model)
+
+    def test(self):
+        self.assertIn(self.model, admin.site._registry)
+
+    def tearDown(self):
+        del apps.all_models['djangoseo']['animal']
+
+
+class RedirectsMiddlewareTest(TestCase):
+
+    def test_create_redirect(self):
+        middleware = RedirectsMiddleware()
+        request_factory = RequestFactory()
+        current_site = Site.objects.get_current()
+        product_id = '123'
+        product_path = reverse('userapp_product_detail', args=(product_id, ))
+
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+
+        redirect_path = reverse('userapp_page_detail', args=('product',))
+        redirect_pattern1 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site
+        )
+        redirect_pattern2 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site,
+            all_subdomains=True,
+        )
+
+        # main scenario
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.old_path, product_path)
+        self.assertEqual(redirect.new_path, redirect_path)
+
+        # with subdomain
+        redirect.delete()
+        redirect_pattern1.subdomain = 'msk'
+        redirect_pattern1.save()
+        request = request_factory.get(product_path)
+        request.subdomain = 'msk'
+        try:
+            product_detail(request, product_id)
+        except Http404 as e:
+            middleware.process_exception(request, e)
+        self.assertEqual(Redirect.objects.count(), 1)
+
+        # all subdomain flag
+        Redirect.objects.first().delete()
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect_pattern2.delete()
+        Redirect.objects.first().delete()
+
+        # with another site
+        another_site = Site.objects.create(
+            domain='example.net',
+            name='example.net'
+        )
+        redirect_pattern1.site = another_site
+        redirect_pattern1.save()
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Redirect.objects.count(), 0)

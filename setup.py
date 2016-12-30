@@ -40,5 +40,11 @@ setup(
         "Topic :: Software Development"
     ],
     test_suite='tests.runtests.runtests',
-    test_requires=['coveralls', 'coverage', 'django-discover-runner']
+    test_requires=['coveralls', 'coverage', 'django-discover-runner'],
+    package_data={
+        'djangoseo': [
+            'locale/*/*/*.mo',
+            'locale/*/*/*.po',
+        ]
+    }
 )
