@@ -1,12 +1,16 @@
 import re
-from django.conf import settings
+from logging import getLogger
 
+from django.conf import settings
 from django.contrib.redirects.models import Redirect
 from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Q
 from django.http import Http404
 
 from .models import RedirectPattern
+
+
+logger = getLogger(__name__)
 
 
 class RedirectsMiddleware(object):
@@ -27,10 +31,14 @@ class RedirectsMiddleware(object):
 
             for redirect_pattern in redirect_patterns:
                 if re.match(redirect_pattern.url_pattern, full_path):
-                    Redirect.objects.get_or_create(
-                        site=current_site,
-                        old_path=full_path,
-                        new_path=redirect_pattern.redirect_path
-                    )
+                    kwargs = {
+                        'site': current_site,
+                        'old_path': full_path,
+                        'new_path': redirect_pattern.redirect_path
+                    }
+                    try:
+                        Redirect.objects.get_or_create(**kwargs)
+                    except Exception:
+                        logger.warning('Failed to create redirection', exc_info=True, extra=kwargs)
                     break
         return
