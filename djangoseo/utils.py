@@ -5,6 +5,7 @@ import importlib
 
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
+from django.utils.module_loading import import_string
 from django.utils.html import conditional_escape
 from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver, clear_url_caches
 from django.conf import settings
@@ -159,3 +160,18 @@ def create_dynamic_model(model_name, app_label='djangoseo', **attrs):
     if six.PY2:
         model_name = str(model_name)
     return type(model_name, (models.Model,), attrs)
+
+
+def import_redirects_models():
+    """
+    Import tracked redirects models.
+    """
+    redirects_models = getattr(settings, 'SEO_REDIRECTS_MODELS', [])
+    models = []
+    for model_path in redirects_models:
+        try:
+            model = import_string(model_path)
+            models.append(model)
+        except ImportError as e:
+            logging.warning("Failed to import model from path '%s'" % model_path)
+    return models
