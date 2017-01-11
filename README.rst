@@ -75,7 +75,10 @@ Optionally enable ``SEO_USE_REDIRECTS`` and specify ``SEO_TRACKED_MODELS`` if yo
     SEO_USE_REDIRECTS = True  # for tracking 404 errors
 
     # for tracking models URLs
-    SEO_TRACKED_MODELS = ('your_app.models.Foo', 'your_app.models.Bar')
+    SEO_TRACKED_MODELS = (
+        'your_app.models.Foo',
+        'your_app.models.Bar'
+    )
 
 Make migrations for ``django-seo`` models::
     
