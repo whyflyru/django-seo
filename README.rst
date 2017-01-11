@@ -56,9 +56,8 @@ Add ``djangoseo`` to your INSTALLED_APPS:
 .. code:: python
 
     INSTALLED_APPS = (
-        ...,
+        ...
         'djangoseo',
-        ...,
     )
     
 Specify the path to migrations:
