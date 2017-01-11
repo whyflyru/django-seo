@@ -162,11 +162,11 @@ def create_dynamic_model(model_name, app_label='djangoseo', **attrs):
     return type(model_name, (models.Model,), attrs)
 
 
-def import_redirects_models():
+def import_tracked_models():
     """
-    Import tracked redirects models.
+    Import models
     """
-    redirects_models = getattr(settings, 'SEO_REDIRECTS_MODELS', [])
+    redirects_models = getattr(settings, 'SEO_TRACKED_MODELS', [])
     models = []
     for model_path in redirects_models:
         try:

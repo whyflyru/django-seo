@@ -25,7 +25,7 @@ from django.core.management import call_command
 from django.apps import apps
 from django.contrib import admin
 
-from djangoseo.utils import create_dynamic_model, register_model_in_admin, import_redirects_models
+from djangoseo.utils import create_dynamic_model, register_model_in_admin, import_tracked_models
 from djangoseo.seo import get_metadata as seo_get_metadata
 from djangoseo.base import registry
 from djangoseo.models import RedirectPattern
@@ -1174,14 +1174,14 @@ class RegisterModelInAdminTest(TestCase):
         del apps.all_models['djangoseo']['animal']
 
 
-class ImportRedirectsModels(TestCase):
+class ImportTrackedModels(TestCase):
 
     @override_settings(SEO_REDIRECTS_MODELS=('userapp.models.Page', 'models.Product', 'Category'))
     def test_import(self):
-        redirects_models = import_redirects_models()
-        self.assertIn(Page, redirects_models)
-        self.assertNotIn(Product, redirects_models)
-        self.assertNotIn(Category, redirects_models)
+        tracked_models = import_tracked_models()
+        self.assertIn(Page, tracked_models)
+        self.assertNotIn(Product, tracked_models)
+        self.assertNotIn(Category, tracked_models)
 
 
 class RedirectsMiddlewareTest(TestCase):
@@ -1249,7 +1249,7 @@ class RedirectsMiddlewareTest(TestCase):
         self.assertEqual(Redirect.objects.count(), 0)
 
 
-class RedirectsModelsTest(TestCase):
+class RedirectsFromModelsTest(TestCase):
 
     def setUp(self):
         self.page = Page.objects.create(title='Page Title', type='asd')

@@ -21,7 +21,7 @@ from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
 from django.db.utils import DatabaseError
 
-from djangoseo.utils import NotSet, Literal, import_redirects_models
+from djangoseo.utils import NotSet, Literal, import_tracked_models
 from djangoseo.options import Options
 from djangoseo.fields import MetadataField, Tag, MetaTag, KeywordTag, Raw
 from djangoseo.backends import backend_registry, RESERVED_FIELD_NAMES
@@ -400,7 +400,7 @@ def register_signals():
                 models.signals.pre_delete.connect(delete_callback, sender=model, weak=False)
 
     if getattr(settings, 'SEO_USE_REDIRECTS', False):
-        redirects_models = import_redirects_models()
+        redirects_models = import_tracked_models()
         for model in redirects_models:
             redirects_callback = curry(_handle_redirects_callback, model_class=model_instance)
             models.signals.pre_save.connect(redirects_callback, sender=model, weak=False)

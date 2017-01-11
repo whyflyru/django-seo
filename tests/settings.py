@@ -102,7 +102,7 @@ SEO_MODELS = ('userapp',)
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 SEO_USE_REDIRECTS = True
-SEO_REDIRECTS_MODELS = ('userapp.models.Page', )
+SEO_TRACKED_MODELS = ('userapp.models.Page',)
 
 try:
     from settings_local import *
