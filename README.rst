@@ -220,9 +220,9 @@ Redirects
 Currently supported are two types of redirects: when an occurs error 404 and when model changes its URL on the site.
 For each type of redirects used functional of `django.contrib.redirects <https://docs.djangoproject.com/en/1.10/ref/contrib/redirects/>`_. You must configure it before use redirects from ``django-seo``.
 
-If you need a redirection when an error occurs 404 enable ``SEO_USE_REDIRECTS`` and setup URL patterns for redirection in admin interface.
+If you need a redirection when an error occurs 404, enable ``SEO_USE_REDIRECTS`` and setup URL patterns for redirection in admin interface.
 It's like a standard URL patterns, but instead of finding a suitable view it creates a redirect in case of an error 404 for a given pattern.
-For example for pattern ``/news/([\w\-_]+)/`` will be created to redirect for ``/news/foo/`` and ``/news/bar/``.
+For example for pattern ``/news/([\w\-_]+)/`` will be created a redirect for ``/news/foo/`` and ``/news/bar/``.
 
 If you need a redirection when model changes its URL list the full path to the models in ``SEO_TRACKED_MODELS``:
 
@@ -234,7 +234,7 @@ If you need a redirection when model changes its URL list the full path to the m
     )
 
 Attention: each path to model must be direct and model must have a method ``get_absolute_url``.
-Work such redirection follows: when path to model on site changed it create redirection to old path.
+Work such redirection follows: when path to model on site changed, it create redirection to old path.
 For example:
 
 .. code:: python
@@ -246,4 +246,4 @@ For example:
         def get_absolute_url(self):
             return reverse('name-of-foo-url', kwargs={'slug': self.slug})
 
-If you create instance of ``Foo`` - redirection will not be created, but if change ``slug`` on instance of ``Foo`` ``django-seo`` creates new redirect for old instance path.
+If you create instance of ``Foo``, redirection will not be created, but if change ``slug`` on instance of ``Foo`` ``django-seo`` creates new redirect for old instance path.
