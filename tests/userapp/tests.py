@@ -1,10 +1,38 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import hashlib
 
+from django.utils import six
+from django.core.urlresolvers import reverse
+from django.test import TestCase, override_settings
 from django.http import Http404
+try:
+    from django.test import TransactionTestCase
+except ImportError:
+    TransactionTestCase = TestCase
+from django.test.client import FakePayload, RequestFactory
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sites.models import Site
+from django.contrib.redirects.models import Redirect
+from django.contrib.auth.models import User
+from django.conf import settings
+from django.db import models, IntegrityError, transaction
+from django.core.handlers.wsgi import WSGIRequest
+from django.template import Template, RequestContext, TemplateSyntaxError
+from django.core.cache import cache
+from django.utils.encoding import iri_to_uri
+from django.core.management import call_command
+from django.apps import apps
+from django.contrib import admin
 
+from djangoseo.utils import create_dynamic_model, register_model_in_admin, import_redirects_models
+from djangoseo.seo import get_metadata as seo_get_metadata
+from djangoseo.base import registry
+from djangoseo.models import RedirectPattern
 from djangoseo.middleware import RedirectsMiddleware
 from .views import product_detail
+from .models import Page, Product, NoPath, Tag, Category
+from .seo import Coverage, WithSites, WithI18n, WithBackends, WithSubdomains
 
 """ Test suite for SEO framework.
 
@@ -36,37 +64,6 @@ from .views import product_detail
         - verbose_name(_plural): this is passed onto Django
 
 """
-import hashlib
-
-from django.utils import six
-from django.core.urlresolvers import reverse
-from django.test import TestCase
-try:
-    from django.test import TransactionTestCase
-except ImportError:
-    TransactionTestCase = TestCase
-from django.test.client import FakePayload, RequestFactory
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.sites.models import Site
-from django.contrib.redirects.models import Redirect
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.db import models, IntegrityError, transaction, OperationalError
-from django.core.handlers.wsgi import WSGIRequest
-from django.template import Template, RequestContext, TemplateSyntaxError
-from django.core.cache import cache
-from django.utils.encoding import iri_to_uri
-from django.core.management import call_command
-from django.apps import apps
-from django.contrib import admin
-
-from djangoseo.utils import create_dynamic_model, register_model_in_admin
-from djangoseo.seo import get_metadata as seo_get_metadata
-from djangoseo.base import registry
-from djangoseo.models import RedirectPattern
-from userapp.models import Page, Product, Category, NoPath, Tag
-from userapp.seo import (Coverage, WithSites, WithI18n, WithRedirect, WithRedirectSites, WithCache, WithCacheSites,
-                         WithCacheI18n, WithBackends, WithSubdomains)
 
 
 def get_metadata(path):
@@ -1177,6 +1174,16 @@ class RegisterModelInAdminTest(TestCase):
         del apps.all_models['djangoseo']['animal']
 
 
+class ImportRedirectsModels(TestCase):
+
+    @override_settings(SEO_REDIRECTS_MODELS=('userapp.models.Page', 'models.Product', 'Category'))
+    def test_import(self):
+        redirects_models = import_redirects_models()
+        self.assertIn(Page, redirects_models)
+        self.assertNotIn(Product, redirects_models)
+        self.assertNotIn(Category, redirects_models)
+
+
 class RedirectsMiddlewareTest(TestCase):
 
     def test_create_redirect(self):
@@ -1240,3 +1247,18 @@ class RedirectsMiddlewareTest(TestCase):
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Redirect.objects.count(), 0)
+
+
+class RedirectsModelsTest(TestCase):
+
+    def setUp(self):
+        self.page = Page.objects.create(title='Page Title', type='asd')
+
+    def test_redirects_models(self):
+        self.page.type = 'dsa'
+        self.page.save()
+        redirect = Redirect.objects.first()
+        self.assertTrue(redirect)
+        self.assertTrue(redirect.old_path == reverse('userapp_page_detail', args=['asd']))
+        self.assertTrue(redirect.new_path == reverse('userapp_page_detail', args=['dsa']))
+        self.assertTrue(redirect.site == Site.objects.get_current())

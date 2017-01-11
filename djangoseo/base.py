@@ -361,7 +361,7 @@ def _update_callback(model_class, sender, instance, created, **kwargs):
     create_metadata_instance(model_class, instance)
 
 
-def _handle_redirects_callback(model_class, sender, instance, created, **kwargs):
+def _handle_redirects_callback(model_class, sender, instance, **kwargs):
     """
     Callback to be attached to a pre_save signal of tracked models and
     create instances of redirects for changed URLs.
