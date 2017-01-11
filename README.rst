@@ -43,7 +43,7 @@ As you can see it is very flexible, but there is much more than this simple exam
 Installation
 ============
 
-The easiest way to install Django SEO is to use use ``pip``, if you have it:
+The easiest way to install Django SEO is to use use ``pip``, if you have it::
 
     pip install django-seo
 
@@ -51,7 +51,7 @@ If you don't, and you prefer the old school ``easy_install``, then the following
 
     easy_install django-seo
 
-Add ``djangoseo`` to your INSTALLED_APPS::
+Add ``djangoseo`` to your INSTALLED_APPS:
 
 .. code:: python
 
@@ -69,7 +69,7 @@ Specify the path to migrations:
         'djangoseo': 'path.to.migrations',
     }
 
-Optionally enable ``SEO_USE_REDIRECTS`` and specify ``SEO_TRACKED_MODELS`` if you need a functional of redirects::
+Optionally enable ``SEO_USE_REDIRECTS`` and specify ``SEO_TRACKED_MODELS`` if you need a functional of redirects:
 
 .. code:: python
 
@@ -214,16 +214,16 @@ You can also retrive the value directly, like this:
 Redirects
 ---------
 
-Currently supported are two types of of redirects: when an occurs error 404 and when model changes its URL on the site.
-For each type of redirects used functional of - `django.contrib.redirects <https://docs.djangoproject.com/en/1.10/ref/contrib/redirects/>`_. You must configure it before use redirects from ``django-seo``.
+Currently supported are two types of redirects: when an occurs error 404 and when model changes its URL on the site.
+For each type of redirects used functional of `django.contrib.redirects <https://docs.djangoproject.com/en/1.10/ref/contrib/redirects/>`_. You must configure it before use redirects from ``django-seo``.
 
 If you need a redirection when an error occurs 404 enable ``SEO_USE_REDIRECTS`` and setup URL patterns for redirection in admin interface.
 It's like a standard URL patterns, but instead of finding a suitable view it creates a redirect in case of an error 404 for a given pattern.
 For example for pattern ``/news/([\w\-_]+)/`` will be created to redirect for ``/news/foo/`` and ``/news/bar/``.
 
-If you need a redirection when model changes its URL list the full path to the models in ``SEO_TRACKED_MODELS``::
+If you need a redirection when model changes its URL list the full path to the models in ``SEO_TRACKED_MODELS``:
 
-.. code-block:: python
+.. code:: python
 
     SEO_TRACKED_MODELS = (
         'your_app.models.Foo',
@@ -234,7 +234,7 @@ Attention: each path to model must be direct and model must have a method ``get_
 Work such redirection follows: when path to model on site changed it create redirection to old path.
 For example:
 
-.. code-block:: python
+.. code:: python
 
     class Foo(models.model):
         ...
