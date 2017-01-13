@@ -14,7 +14,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import curry
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.redirects.models import Redirect
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
@@ -366,6 +365,9 @@ def _handle_redirects_callback(model_class, sender, instance, **kwargs):
     Callback to be attached to a pre_save signal of tracked models and
     create instances of redirects for changed URLs.
     """
+    # avoid RuntimeError for apps without enabled redirects
+    from django.contrib.redirects.models import Redirect
+
     if not instance.pk:
         return
     try:
