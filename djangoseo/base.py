@@ -4,6 +4,7 @@
 #    * Documentation
 #    * Make backends optional: Meta.backends = (path, modelinstance/model, view)
 import hashlib
+import logging
 from collections import OrderedDict
 
 from django.db import models
@@ -13,16 +14,20 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import curry
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.redirects.models import Redirect
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
 from django.db.utils import DatabaseError
 
-from djangoseo.utils import NotSet, Literal
+from djangoseo.utils import NotSet, Literal, import_tracked_models
 from djangoseo.options import Options
 from djangoseo.fields import MetadataField, Tag, MetaTag, KeywordTag, Raw
 from djangoseo.backends import backend_registry, RESERVED_FIELD_NAMES
+
+
+logger = logging.getLogger(__name__)
 
 
 registry = OrderedDict()
@@ -356,6 +361,26 @@ def _update_callback(model_class, sender, instance, created, **kwargs):
     create_metadata_instance(model_class, instance)
 
 
+def _handle_redirects_callback(model_class, sender, instance, **kwargs):
+    """
+    Callback to be attached to a pre_save signal of tracked models and
+    create instances of redirects for changed URLs.
+    """
+    if not instance.pk:
+        return
+    try:
+        after = instance.get_absolute_url()
+        before = sender.objects.filter(id=instance.id).first().get_absolute_url()
+        if before != after:
+            Redirect.objects.get_or_create(
+                old_path=before,
+                new_path=after,
+                site=Site.objects.get_current()
+            )
+    except Exception as e:
+        logger.exception('Failed to create new redirect')
+
+
 def _delete_callback(model_class, sender, instance,  **kwargs):
     content_type = ContentType.objects.get_for_model(instance)
     model_class.objects.filter(_content_type=content_type, _object_id=instance.pk).delete()
@@ -373,3 +398,9 @@ def register_signals():
                 # TODO Currently it's not needed to create metadata for new instance
                 models.signals.post_save.connect(update_callback, sender=model, weak=False)
                 models.signals.pre_delete.connect(delete_callback, sender=model, weak=False)
+
+    if getattr(settings, 'SEO_USE_REDIRECTS', False):
+        redirects_models = import_tracked_models()
+        for model in redirects_models:
+            redirects_callback = curry(_handle_redirects_callback, model_class=model_instance)
+            models.signals.pre_save.connect(redirects_callback, sender=model, weak=False)
