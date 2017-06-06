@@ -139,6 +139,9 @@ class FormattedMetadata(object):
 class BoundMetadataField(object):
     """ An object to help provide templates with access to a "bound" metadata field. """
 
+    def __bool__(self):
+        return bool(self.value)
+
     def __init__(self, field, value):
         self.field = field
         if value:
