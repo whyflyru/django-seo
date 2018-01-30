@@ -8,6 +8,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.db.utils import IntegrityError
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -101,7 +102,9 @@ class BaseManager(models.Manager):
         if language:
             queryset = queryset.filter(_language=language)
         if subdomain is not None:
-            queryset = queryset.filter(_subdomain=subdomain)
+            queryset = queryset.filter(
+                Q(_subdomain=subdomain) | Q(_all_subdomains=True)
+            ).order_by('_all_subdomains')
         return queryset
 
 
@@ -174,7 +177,9 @@ class MetadataBackend(object):
                     if language:
                         queryset = queryset.filter(_language=language)
                     if subdomain is not None:
-                        queryset = queryset.filter(_subdomain=subdomain)
+                        queryset = queryset.filter(
+                            Q(_subdomain=subdomain) | Q(_all_subdomains=True)
+                        ).order_by('_all_subdomains')
                     return queryset
         return _Manager
 
@@ -225,6 +230,11 @@ class PathBackend(MetadataBackend):
                     blank=True,
                     null=True,
                     db_index=True
+                )
+                _all_subdomains = models.BooleanField(
+                    _('all subdomains'),
+                    default=False,
+                    help_text=_('Metadata works for all subdomains')
                 )
 
             objects = self.get_manager(options)()
@@ -299,6 +309,11 @@ class ViewBackend(MetadataBackend):
                     blank=True,
                     null=True,
                     db_index=True
+                )
+                _all_subdomains = models.BooleanField(
+                    _('all subdomains'),
+                    default=False,
+                    help_text=_('Metadata works for all subdomains')
                 )
 
             objects = self.get_manager(options)()
@@ -380,6 +395,11 @@ class ModelInstanceBackend(MetadataBackend):
                     blank=True,
                     null=True,
                     db_index=True
+                )
+                _all_subdomains = models.BooleanField(
+                    _('all subdomains'),
+                    default=False,
+                    help_text=_('Metadata works for all subdomains')
                 )
 
             objects = self.get_manager(options)()
@@ -478,6 +498,11 @@ class ModelBackend(MetadataBackend):
                     blank=True,
                     null=True,
                     db_index=True
+                )
+                _all_subdomains = models.BooleanField(
+                    _('all subdomains'),
+                    default=False,
+                    help_text=_('Metadata works for all subdomains')
                 )
 
             objects = self.get_manager(options)()
