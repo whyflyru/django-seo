@@ -214,6 +214,32 @@ You can also retrive the value directly, like this:
 
         <h1 class="special">{{ my_meta.heading.value }}</h1>
 
+Subdomains
+----------
+
+``django-seo`` supports subdomains, for example, via `django-subdomains <https://pypi.python.org/pypi/django-subdomains>`_ . In order to use subdomains support in your seo-model, specify the option ``use_subdomains``:
+
+.. code-block:: python
+
+    from djangoseo import seo
+
+    class MyMetadata(seo.Metadata):
+        title       = seo.Tag(head=True, max_length=68)
+        description = seo.MetaTag(max_length=155)
+        keywords    = seo.KeywordTag()
+        heading     = seo.Tag(name="h1")
+
+        class Meta:
+            verbose_name = 'Meta tag'
+            verbose_name_plural = 'Meta tags'
+            use_subdomains = True
+
+After that, you can specify a specific subdomain on which to display the metadata and redefine the subdomain in the template tag to output the data:
+
+.. code-block:: html
+
+    {% get_metadata SeoModelWithSubdomains under "msk" %}
+
 Redirects
 ---------
 
