@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-30 12:47+0500\n"
+"POT-Creation-Date: 2018-01-31 14:21+0500\n"
 "Last-Translator: Adrian Tangochin <tangochin@yandex.ru>\n"
 "Language-Team: Russian\n"
 "Language: \n"
@@ -18,35 +18,44 @@ msgstr ""
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
 "%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: admin.py:184 admin.py:216 backends.py:349 backends.py:453
+#: admin.py:184 admin.py:216 backends.py:364 backends.py:473
 msgid "model"
 msgstr "модель"
 
-#: admin.py:219 backends.py:353
+#: admin.py:219 backends.py:368
 msgid "ID"
 msgstr "ID"
 
-#: admin.py:257 backends.py:271
+#: admin.py:257 backends.py:281
 msgid "view"
 msgstr ""
 
-#: backends.py:199 backends.py:341
+#: backends.py:204 backends.py:356
 msgid "path"
 msgstr "адрес"
 
-#: backends.py:208 backends.py:282 backends.py:363 backends.py:461
-#: models.py:48
+#: backends.py:213 backends.py:292 backends.py:378 backends.py:481
+#: models.py:49
 msgid "site"
 msgstr "сайт"
 
-#: backends.py:213 backends.py:287 backends.py:368 backends.py:466
+#: backends.py:218 backends.py:297 backends.py:383 backends.py:486
 msgid "language"
 msgstr "язык"
 
-#: backends.py:223 backends.py:297 backends.py:378 backends.py:476
-#: models.py:55
+#: backends.py:228 backends.py:307 backends.py:393 backends.py:496
+#: models.py:56
 msgid "subdomain"
 msgstr "поддомен"
+
+#: backends.py:235 backends.py:314 backends.py:400 backends.py:503
+#: models.py:63
+msgid "all subdomains"
+msgstr "все поддомены"
+
+#: backends.py:237 backends.py:316 backends.py:402 backends.py:505
+msgid "Metadata works for all subdomains"
+msgstr "Метаданные работают для всех поддоменов"
 
 #: fields.py:60 fields.py:69
 #, python-format
@@ -63,26 +72,22 @@ msgstr ""
 msgid "If empty, %s will be used."
 msgstr ""
 
-#: models.py:37
+#: models.py:38
 msgid "Redirect pattern"
 msgstr "Шаблон перенаправления"
 
-#: models.py:38
+#: models.py:39
 msgid "Redirect patterns"
 msgstr "Шаблоны перенаправления"
 
-#: models.py:42
+#: models.py:43
 msgid "URL pattern"
 msgstr "шаблон URL"
 
-#: models.py:51
+#: models.py:52
 msgid "redirect path"
 msgstr "адрес для перенаправления"
 
-#: models.py:62
-msgid "all subdomains"
-msgstr "все поддомены"
-
-#: models.py:64
+#: models.py:65
 msgid "Pattern works for all subdomains"
 msgstr "Шаблон работает для всех поддоменов"
