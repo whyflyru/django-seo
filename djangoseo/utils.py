@@ -3,6 +3,7 @@ import logging
 import re
 import importlib
 
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.module_loading import import_string
@@ -10,7 +11,11 @@ from django.utils.html import conditional_escape
 from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver, clear_url_caches
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils import six
+
+
+logger = logging.getLogger(__name__)
 
 
 class NotSet(object):
@@ -175,3 +180,37 @@ def import_tracked_models():
         except ImportError as e:
             logging.warning("Failed to import model from path '%s'" % model_path)
     return models
+
+
+def handle_seo_redirects(request):
+    """
+    Handle SEO redirects. Create django.contrib.redirects.models.Redirect if exists redirect pattern.
+    :param request: Django request
+    """
+    from .models import RedirectPattern
+    from django.contrib.redirects.models import Redirect
+
+    if not getattr(settings, 'SEO_USE_REDIRECTS', False):
+        return
+
+    full_path = request.get_full_path()
+    current_site = get_current_site(request)
+    subdomain = getattr(request, 'subdomain', '')
+
+    redirect_patterns = RedirectPattern.objects.filter(
+        Q(site=current_site),
+        Q(subdomain=subdomain) | Q(all_subdomains=True)
+    ).order_by('all_subdomains')
+
+    for redirect_pattern in redirect_patterns:
+        if re.match(redirect_pattern.url_pattern, full_path):
+            kwargs = {
+                'site': current_site,
+                'old_path': full_path,
+                'new_path': redirect_pattern.redirect_path
+            }
+            try:
+                Redirect.objects.get_or_create(**kwargs)
+            except Exception:
+                logger.warning('Failed to create redirection', exc_info=True, extra=kwargs)
+            break
