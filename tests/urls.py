@@ -8,7 +8,7 @@ from userapp.admin import alternative_site
 
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^alt-admin/', include(alternative_site.urls)),
+    url(r'^admin/', admin.site.urls),
+    url(r'^alt-admin/', alternative_site.urls),
     url(r'^', include('userapp.urls')),
 ]
