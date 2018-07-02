@@ -8,7 +8,8 @@ from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.module_loading import import_string
 from django.utils.html import conditional_escape
-from django.urls import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver, clear_url_caches
+from django.urls import (URLResolver as RegexURLResolver, URLPattern as RegexURLPattern, Resolver404, get_resolver,
+                         clear_url_caches)
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
