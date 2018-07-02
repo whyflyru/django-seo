@@ -280,12 +280,10 @@ class DataSelection(TestCase):
             (eg exception in get_absolute_url).
         """
         from django.urls import NoReverseMatch
-        try:
+        with self.assertRaises(NoReverseMatch):
             self.page.type = "a type with spaces!"  # this causes get_absolute_url() to fail
             self.page.save()
             self.fail("No exception raised on developer error.")
-        except NoReverseMatch:
-            pass
 
     def test_missing_meta(self):
         """ Check that no exceptions are raised when the metadata object is missing. """
@@ -1167,7 +1165,7 @@ class CreateDynamicModelTest(TestCase):
         self.assertNotEquals(self.model._meta.model_name.lower(), self.model_name)
 
     def test_model_fields(self):
-        received_fields = self.model._meta.get_all_field_names()
+        received_fields = [f.name for f in self.model._meta.get_fields()]
         expected_fields = ['id'] + list(self.attrs.keys())
         self.assertSetEqual(set(received_fields), set(expected_fields))
 
