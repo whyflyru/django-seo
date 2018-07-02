@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import hashlib
 
 from django.utils import six
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase, override_settings
 from django.http import Http404
 
@@ -279,7 +279,7 @@ class DataSelection(TestCase):
         """ Tests that the system gracefully handles a developer error
             (eg exception in get_absolute_url).
         """
-        from django.core.urlresolvers import NoReverseMatch
+        from django.urls import NoReverseMatch
         try:
             self.page.type = "a type with spaces!"  # this causes get_absolute_url() to fail
             self.page.save()
