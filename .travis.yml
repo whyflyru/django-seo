@@ -4,7 +4,6 @@ python:
   - "3.5"
   - "3.6"
 env:
-  - DJANGO=1.11 DB=sqlite
   - DJANGO=2.0 DB=sqlite
 install:
   - pip install -q Django==$DJANGO
