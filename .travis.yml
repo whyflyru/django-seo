@@ -1,10 +1,11 @@
 language: python
 python:
-  - "3.4"
-  - "3.5"
   - "3.6"
 env:
+  - DJANGO=1.10 DB=sqlite
+  - DJANGO=1.11 DB=sqlite
   - DJANGO=2.0 DB=sqlite
+  - DJANGO=2.1 DB=sqlite
 install:
   - pip install -q Django==$DJANGO
   - pip install coveralls coverage django-discover-runner
