@@ -3,6 +3,7 @@ import logging
 import re
 import importlib
 
+from django import http
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
@@ -183,13 +184,13 @@ def import_tracked_models():
     return models
 
 
-def handle_seo_redirects(request):
+def handle_seo_redirects(request, response_redirect_class=http.HttpResponsePermanentRedirect):
     """
     Handle SEO redirects. Create django.contrib.redirects.models.Redirect if exists redirect pattern.
     :param request: Django request
+    :param response_redirect_class: Django HTTP class for redirect
     """
     from .models import RedirectPattern
-    from django.contrib.redirects.models import Redirect
 
     if not getattr(settings, 'SEO_USE_REDIRECTS', False):
         return
@@ -204,14 +205,7 @@ def handle_seo_redirects(request):
     ).order_by('all_subdomains')
 
     for redirect_pattern in redirect_patterns:
-        if re.match(redirect_pattern.url_pattern, full_path):
-            kwargs = {
-                'site': current_site,
-                'old_path': full_path,
-                'new_path': redirect_pattern.redirect_path
-            }
-            try:
-                Redirect.objects.get_or_create(**kwargs)
-            except Exception:
-                logger.warning('Failed to create redirection', exc_info=True, extra=kwargs)
-            break
+        if re.match(redirect_pattern.url_pattern, full_path) and (
+            redirect_pattern.subdomain == subdomain or redirect_pattern.all_subdomains
+        ):
+            return response_redirect_class(redirect_pattern.redirect_path)
