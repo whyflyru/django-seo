@@ -6,7 +6,6 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
-from django.contrib.sites.models import Site
 
 from .utils import create_dynamic_model, register_model_in_admin
 
@@ -87,6 +86,8 @@ def setup():
 
         def redirect_str_method(self):
             return '%s ---> %s' % (self.old_path, self.new_path)
+
+        from django.contrib.sites.models import Site
 
         Redirect = create_dynamic_model('RedirectPattern', **{
             'site': models.ForeignKey(

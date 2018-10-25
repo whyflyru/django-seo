@@ -14,7 +14,6 @@ except ImportError:
 from django.test.client import FakePayload, RequestFactory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-from django.contrib.redirects.models import Redirect
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db import models, IntegrityError, transaction
@@ -29,7 +28,7 @@ from django.contrib import admin
 from djangoseo.utils import create_dynamic_model, register_model_in_admin, import_tracked_models
 from djangoseo.seo import get_metadata as seo_get_metadata
 from djangoseo.base import registry
-from djangoseo.models import RedirectPattern
+from djangoseo.models import RedirectPattern, Redirect
 from djangoseo.middleware import RedirectsMiddleware
 from .views import product_detail
 from .models import Page, Product, NoPath, Tag, Category
@@ -1214,28 +1213,30 @@ class ImportTrackedModels(TestCase):
 
 class RedirectsMiddlewareTest(TestCase):
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.current_site = Site.objects.get_current()
+        cls.redirect_path = reverse('userapp_page_detail', args=('product',))
+        cls.redirect_pattern1 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=cls.redirect_path,
+            site=cls.current_site
+        )
+        cls.redirect_pattern2 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=cls.redirect_path,
+            site=cls.current_site,
+            all_subdomains=True
+        )
+
     def test_create_redirect(self):
         middleware = RedirectsMiddleware()
         request_factory = RequestFactory()
-        current_site = Site.objects.get_current()
         product_id = '123'
         product_path = reverse('userapp_product_detail', args=(product_id,))
 
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
-
-        redirect_path = reverse('userapp_page_detail', args=('product',))
-        redirect_pattern1 = RedirectPattern.objects.create(
-            url_pattern='/products/(\d+)/',
-            redirect_path=redirect_path,
-            site=current_site
-        )
-        redirect_pattern2 = RedirectPattern.objects.create(
-            url_pattern='/products/(\d+)/',
-            redirect_path=redirect_path,
-            site=current_site,
-            all_subdomains=True,
-        )
 
         # main scenario
         response = self.client.get(product_path)
@@ -1243,12 +1244,12 @@ class RedirectsMiddlewareTest(TestCase):
         self.assertEqual(Redirect.objects.count(), 1)
         redirect = Redirect.objects.first()
         self.assertEqual(redirect.old_path, product_path)
-        self.assertEqual(redirect.new_path, redirect_path)
+        self.assertEqual(redirect.new_path, self.redirect_path)
 
         # with subdomain
         redirect.delete()
-        redirect_pattern1.subdomain = 'msk'
-        redirect_pattern1.save()
+        self.redirect_pattern1.subdomain = 'msk'
+        self.redirect_pattern1.save()
         request = request_factory.get(product_path)
         request.subdomain = 'msk'
         try:
@@ -1262,7 +1263,7 @@ class RedirectsMiddlewareTest(TestCase):
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(Redirect.objects.count(), 1)
-        redirect_pattern2.delete()
+        self.redirect_pattern2.delete()
         Redirect.objects.first().delete()
 
         # with another site
@@ -1270,8 +1271,8 @@ class RedirectsMiddlewareTest(TestCase):
             domain='example.net',
             name='example.net'
         )
-        redirect_pattern1.site = another_site
-        redirect_pattern1.save()
+        self.redirect_pattern1.site = another_site
+        self.redirect_pattern1.save()
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Redirect.objects.count(), 0)

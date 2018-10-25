@@ -184,7 +184,7 @@ def import_tracked_models():
 
 def handle_seo_redirects(request):
     """
-    Handle SEO redirects. Create django.contrib.redirects.models.Redirect if exists redirect pattern.
+    Handle SEO redirects. Create Redirect instance if exists redirect pattern.
     :param request: Django request
     """
     from .models import RedirectPattern, Redirect
