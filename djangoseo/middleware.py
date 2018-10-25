@@ -44,7 +44,7 @@ class RedirectFallbackMiddleware(MiddlewareMixin):
         if response.status_code != 404:
             return response
 
-        subdomain = getattr('subdomain', request, '')
+        subdomain = getattr(request, 'subdomain', '')
         full_path = request.get_full_path()
         current_site = get_current_site(request)
 

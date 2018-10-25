@@ -33,8 +33,8 @@ def setup():
 
     # if SEO_USE_REDIRECTS is enabled, add model for redirect and register it in admin
     if getattr(settings, 'SEO_USE_REDIRECTS', False):
-        def magic_str_method(self):
-            return self.redirect_path
+        def redirect_pattern_str_method(self):
+            return '%s -> %s' % (self.url_pattern, self.redirect_path)
 
         class RedirectPatternMeta:
             verbose_name = _('Redirect pattern')
@@ -66,7 +66,7 @@ def setup():
                 default=False,
                 help_text=_('Pattern works for all subdomains')
             ),
-            '__str__': magic_str_method,
+            '__str__': redirect_pattern_str_method,
             'Meta': RedirectPatternMeta
         })
 
@@ -85,11 +85,11 @@ def setup():
             ordering = ('old_path',)
 
         def redirect_str_method(self):
-            return '%s ---> %s' % (self.old_path, self.new_path)
+            return '%s -> %s' % (self.old_path, self.new_path)
 
         from django.contrib.sites.models import Site
 
-        Redirect = create_dynamic_model('RedirectPattern', **{
+        Redirect = create_dynamic_model('Redirect', **{
             'site': models.ForeignKey(
                 to=Site,
                 on_delete=models.CASCADE,

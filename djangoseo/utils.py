@@ -207,7 +207,7 @@ def handle_seo_redirects(request):
                 'site': current_site,
                 'old_path': full_path,
                 'new_path': redirect_pattern.redirect_path,
-                'subdomain': subdomain,
+                'subdomain': redirect_pattern.subdomain,
                 'all_subdomains': redirect_pattern.all_subdomains
             }
             try:

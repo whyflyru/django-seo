@@ -1213,22 +1213,6 @@ class ImportTrackedModels(TestCase):
 
 class RedirectsMiddlewareTest(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.current_site = Site.objects.get_current()
-        cls.redirect_path = reverse('userapp_page_detail', args=('product',))
-        cls.redirect_pattern1 = RedirectPattern.objects.create(
-            url_pattern='/products/(\d+)/',
-            redirect_path=cls.redirect_path,
-            site=cls.current_site
-        )
-        cls.redirect_pattern2 = RedirectPattern.objects.create(
-            url_pattern='/products/(\d+)/',
-            redirect_path=cls.redirect_path,
-            site=cls.current_site,
-            all_subdomains=True
-        )
-
     def test_create_redirect(self):
         middleware = RedirectsMiddleware()
         request_factory = RequestFactory()
@@ -1238,18 +1222,34 @@ class RedirectsMiddlewareTest(TestCase):
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
 
+        current_site = Site.objects.get_current()
+        redirect_path = reverse('userapp_page_detail', args=('product',))
+        redirect_pattern1 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site
+        )
+        redirect_pattern2 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site,
+            all_subdomains=True,
+        )
+
         # main scenario
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(Redirect.objects.count(), 1)
         redirect = Redirect.objects.first()
         self.assertEqual(redirect.old_path, product_path)
-        self.assertEqual(redirect.new_path, self.redirect_path)
+        self.assertEqual(redirect.new_path, redirect_path)
+        self.assertEqual(redirect.subdomain, redirect_pattern1.subdomain)
+        self.assertEqual(redirect.all_subdomains, redirect_pattern1.all_subdomains)
 
         # with subdomain
         redirect.delete()
-        self.redirect_pattern1.subdomain = 'msk'
-        self.redirect_pattern1.save()
+        redirect_pattern1.subdomain = 'msk'
+        redirect_pattern1.save()
         request = request_factory.get(product_path)
         request.subdomain = 'msk'
         try:
@@ -1257,22 +1257,28 @@ class RedirectsMiddlewareTest(TestCase):
         except Http404 as e:
             middleware.process_exception(request, e)
         self.assertEqual(Redirect.objects.count(), 1)
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.subdomain, redirect_pattern1.subdomain)
+        self.assertEqual(redirect.all_subdomains, redirect_pattern1.all_subdomains)
 
         # all subdomain flag
         Redirect.objects.first().delete()
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 301)
         self.assertEqual(Redirect.objects.count(), 1)
-        self.redirect_pattern2.delete()
-        Redirect.objects.first().delete()
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.subdomain, redirect_pattern2.subdomain)
+        self.assertEqual(redirect.all_subdomains, redirect_pattern2.all_subdomains)
+        redirect_pattern2.delete()
+        redirect.delete()
 
         # with another site
         another_site = Site.objects.create(
             domain='example.net',
             name='example.net'
         )
-        self.redirect_pattern1.site = another_site
-        self.redirect_pattern1.save()
+        redirect_pattern1.site = another_site
+        redirect_pattern1.save()
         response = self.client.get(product_path)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Redirect.objects.count(), 0)
