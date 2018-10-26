@@ -6,13 +6,33 @@ from django.db.models import Q
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.deprecation import MiddlewareMixin
 
 from .models import Redirect
 from .utils import handle_seo_redirects
 
 
 logger = getLogger(__name__)
+
+
+# TODO: replace after removing support for old versions of Django
+class MiddlewareMixin(object):
+    """
+    This mixin a full copy of Django 1.10 django.utils.deprecation.MiddlewareMixin.
+    Needed for compatibility reasons.
+    """
+    def __init__(self, get_response=None):
+        self.get_response = get_response
+        super(MiddlewareMixin, self).__init__()
+
+    def __call__(self, request):
+        response = None
+        if hasattr(self, 'process_request'):
+            response = self.process_request(request)
+        if not response:
+            response = self.get_response(request)
+        if hasattr(self, 'process_response'):
+            response = self.process_response(request, response)
+        return response
 
 
 class RedirectsMiddleware(MiddlewareMixin):

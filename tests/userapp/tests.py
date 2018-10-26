@@ -2,11 +2,10 @@
 from __future__ import unicode_literals
 import hashlib
 
+import django
 from django.utils import six
-from django.urls import reverse
 from django.test import TestCase, override_settings
 from django.http import Http404
-
 try:
     from django.test import TransactionTestCase
 except ImportError:
@@ -33,6 +32,11 @@ from djangoseo.middleware import RedirectsMiddleware
 from .views import product_detail
 from .models import Page, Product, NoPath, Tag, Category
 from .seo import Coverage, WithSites, WithI18n, WithBackends, WithSubdomains
+
+if django.VERSION < (2, 0):
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
 
 """ Test suite for SEO framework.
 
@@ -278,7 +282,10 @@ class DataSelection(TestCase):
         """ Tests that the system gracefully handles a developer error
             (eg exception in get_absolute_url).
         """
-        from django.urls import NoReverseMatch
+        if django.VERSION < (2, 0):
+            from django.core.urlresolvers import NoReverseMatch
+        else:
+            from django.urls import NoReverseMatch
         with self.assertRaises(NoReverseMatch):
             self.page.type = "a type with spaces!"  # this causes get_absolute_url() to fail
             self.page.save()
@@ -1164,7 +1171,11 @@ class CreateDynamicModelTest(TestCase):
         self.assertNotEquals(self.model._meta.model_name.lower(), self.model_name)
 
     def test_model_fields(self):
-        received_fields = [f.name for f in self.model._meta.get_fields()]
+        if django.VERSION < (2, 0):
+            # received_fields = self.model._meta.get_all_field_names()
+            received_fields = [f.name for f in self.model._meta.get_fields()]
+        else:
+            received_fields = [f.name for f in self.model._meta.get_fields()]
         expected_fields = ['id'] + list(self.attrs.keys())
         self.assertSetEqual(set(received_fields), set(expected_fields))
 
@@ -1294,6 +1305,7 @@ class RedirectsFromModelsTest(TestCase):
         self.page.save()
         redirect = Redirect.objects.first()
         self.assertTrue(redirect)
+        self.assertTrue(redirect.all_subdomains)
         self.assertTrue(redirect.old_path == reverse('userapp_page_detail', args=['asd']))
         self.assertTrue(redirect.new_path == reverse('userapp_page_detail', args=['dsa']))
         self.assertTrue(redirect.site == Site.objects.get_current())

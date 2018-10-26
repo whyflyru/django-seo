@@ -1,10 +1,14 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals
 
-from django.conf.urls import url
-from django.urls import include
+import django
 from django.contrib import admin
 from userapp.admin import alternative_site
+if django.VERSION < (2, 0):
+    from django.conf.urls import include, url
+else:
+    from django.conf.urls import url
+    from django.urls import include
 
 
 urlpatterns = [
