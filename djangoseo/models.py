@@ -80,7 +80,6 @@ def setup():
         class RedirectMeta:
             verbose_name = _('redirect')
             verbose_name_plural = _('redirects')
-            db_table = 'django_redirect'
             unique_together = (('site', 'old_path'),)
             ordering = ('old_path',)
 
@@ -93,7 +92,8 @@ def setup():
             'site': models.ForeignKey(
                 to=Site,
                 on_delete=models.CASCADE,
-                verbose_name=_('site')
+                verbose_name=_('site'),
+                related_name='seo_redirect'
             ),
             'old_path': models.CharField(
                 verbose_name=_('redirect from'),
@@ -117,7 +117,7 @@ def setup():
             'all_subdomains': models.BooleanField(
                 verbose_name=_('all subdomains'),
                 default=False,
-                help_text=_('Pattern works for all subdomains')
+                help_text=_('Will works for all subdomains')
             ),
             '__str__': redirect_str_method,
             'Meta': RedirectMeta
