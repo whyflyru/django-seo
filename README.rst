@@ -258,7 +258,7 @@ If you need a redirection when model changes its URL list the full path to the m
         'your_app.models.Bar'
     )
 
-The default class for redirection is ``django.http.response.HttpResponsePermanentRedirect``, but if you want to change this behavior, you can change the HttpResponse classes used by the middleware by creating a subclass of RedirectsMiddleware and overriding response_redirect_class.
+The default class for redirection is ``django.http.response.HttpResponsePermanentRedirect``, but if you want to change this behavior, you can change the HttpResponse classes used by the middleware by creating a subclass of RedirectFallbackMiddleware and overriding response_redirect_class.
 
 Attention: each path to model must be direct and model must have a method ``get_absolute_url``.
 Work such redirection follows: when path to model on site changed, it create redirection to old path.
