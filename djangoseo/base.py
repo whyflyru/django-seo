@@ -369,7 +369,7 @@ def _handle_redirects_callback(model_class, sender, instance, **kwargs):
     create instances of redirects for changed URLs.
     """
     # avoid RuntimeError for apps without enabled redirects
-    from django.contrib.redirects.models import Redirect
+    from .models import Redirect
 
     if not instance.pk:
         return
@@ -380,7 +380,8 @@ def _handle_redirects_callback(model_class, sender, instance, **kwargs):
             Redirect.objects.get_or_create(
                 old_path=before,
                 new_path=after,
-                site=Site.objects.get_current()
+                site=Site.objects.get_current(),
+                all_subdomains=True
             )
     except Exception as e:
         logger.exception('Failed to create new redirect')

@@ -244,7 +244,6 @@ Redirects
 ---------
 
 Currently supported are two types of redirects: when an occurs error 404 and when model changes its URL on the site.
-For each type of redirects used functional of `django.contrib.redirects <https://docs.djangoproject.com/en/1.10/ref/contrib/redirects/>`_. You must configure it before use redirects from ``django-seo``.
 
 If you need a redirection when an error occurs 404, enable ``SEO_USE_REDIRECTS`` and setup URL patterns for redirection in admin interface.
 It's like a standard URL patterns, but instead of finding a suitable view it creates a redirect in case of an error 404 for a given pattern.
@@ -258,6 +257,8 @@ If you need a redirection when model changes its URL list the full path to the m
         'your_app.models.Foo',
         'your_app.models.Bar'
     )
+
+The default class for redirection is ``django.http.response.HttpResponsePermanentRedirect``, but if you want to change this behavior, you can change the HttpResponse classes used by the middleware by creating a subclass of RedirectFallbackMiddleware and overriding response_redirect_class.
 
 Attention: each path to model must be direct and model must have a method ``get_absolute_url``.
 Work such redirection follows: when path to model on site changed, it create redirection to old path.

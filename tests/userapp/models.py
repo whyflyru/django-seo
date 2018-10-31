@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import django
 from django.db import models
-from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
+if django.VERSION < (2, 0):
+    from django.core.urlresolvers import reverse
+else:
+    from django.urls import reverse
 
 
 @python_2_unicode_compatible

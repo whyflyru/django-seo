@@ -3,24 +3,28 @@ import logging
 import re
 import importlib
 
+import django
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.module_loading import import_string
 from django.utils.html import conditional_escape
-from django.urls import (URLResolver as RegexURLResolver, URLPattern as RegexURLPattern, Resolver404, get_resolver,
-                         clear_url_caches)
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.utils import six
-
+if django.VERSION < (2, 0):
+    from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver, clear_url_caches
+else:
+    from django.urls import (URLResolver as RegexURLResolver, URLPattern as RegexURLPattern, Resolver404, get_resolver,
+                             clear_url_caches)
 
 logger = logging.getLogger(__name__)
 
 
 class NotSet(object):
     """ A singleton to identify unset values (where None would have meaning) """
+
     def __str__(self):
         return "NotSet"
 
@@ -33,12 +37,16 @@ NotSet = NotSet()
 
 class Literal(object):
     """ Wrap literal values so that the system knows to treat them that way """
+
     def __init__(self, value):
         self.value = value
 
 
 def _pattern_resolve_to_name(pattern, path):
-    match = pattern.pattern.regex.search(path)
+    if django.VERSION < (2, 0):
+        match = pattern.regex.search(path)
+    else:
+        match = pattern.pattern.regex.search(path)
     if match:
         name = ""
         if pattern.name:
@@ -52,7 +60,11 @@ def _pattern_resolve_to_name(pattern, path):
 
 def _resolver_resolve_to_name(resolver, path):
     tried = []
-    match = resolver.pattern.regex.search(path)
+    django1 = django.VERSION < (2, 0)
+    if django1:
+        match = resolver.regex.search(path)
+    else:
+        match = resolver.pattern.regex.search(path)
     if match:
         new_path = path[match.end():]
         for pattern in resolver.url_patterns:
@@ -62,11 +74,17 @@ def _resolver_resolve_to_name(resolver, path):
                 elif isinstance(pattern, RegexURLResolver):
                     name = _resolver_resolve_to_name(pattern, new_path)
             except Resolver404 as e:
-                tried.extend([(pattern.pattern.regex.pattern + '   ' + t) for t in e.args[0]['tried']])
+                if django1:
+                    tried.extend([(pattern.regex.pattern + '   ' + t) for t in e.args[0]['tried']])
+                else:
+                    tried.extend([(pattern.pattern.regex.pattern + '   ' + t) for t in e.args[0]['tried']])
             else:
                 if name:
                     return name
-                tried.append(pattern.pattern.regex.pattern)
+                if django1:
+                    tried.append(pattern.regex.pattern)
+                else:
+                    tried.append(pattern.pattern.regex.pattern)
         raise Resolver404({'tried': tried, 'path': new_path})
 
 
@@ -84,12 +102,10 @@ def _replace_quot(match):
 
 def escape_tags(value, valid_tags):
     """ Strips text from the given html string, leaving only tags.
-        This functionality requires BeautifulSoup, nothing will be 
+        This functionality requires BeautifulSoup, nothing will be
         done otherwise.
-
         This isn't perfect. Someone could put javascript in here:
               <a onClick="alert('hi');">test</a>
-
             So if you use valid_tags, you still need to trust your data entry.
             Or we could try:
               - only escape the non matching bits
@@ -111,7 +127,7 @@ def escape_tags(value, valid_tags):
 
     # Allow comments to be hidden
     value = value.replace("&lt;!--", "<!--").replace("--&gt;", "-->")
-    
+
     return mark_safe(value)
 
 
@@ -122,7 +138,7 @@ def _get_seo_content_types(seo_models):
     from django.contrib.contenttypes.models import ContentType
     try:
         return [ContentType.objects.get_for_model(m).id for m in seo_models]
-    except: # previously caught DatabaseError
+    except:  # previously caught DatabaseError
         # Return an empty list if this is called too early
         return []
 
@@ -185,11 +201,10 @@ def import_tracked_models():
 
 def handle_seo_redirects(request):
     """
-    Handle SEO redirects. Create django.contrib.redirects.models.Redirect if exists redirect pattern.
+    Handle SEO redirects. Create Redirect instance if exists redirect pattern.
     :param request: Django request
     """
-    from .models import RedirectPattern
-    from django.contrib.redirects.models import Redirect
+    from .models import RedirectPattern, Redirect
 
     if not getattr(settings, 'SEO_USE_REDIRECTS', False):
         return
@@ -208,7 +223,9 @@ def handle_seo_redirects(request):
             kwargs = {
                 'site': current_site,
                 'old_path': full_path,
-                'new_path': redirect_pattern.redirect_path
+                'new_path': redirect_pattern.redirect_path,
+                'subdomain': redirect_pattern.subdomain,
+                'all_subdomains': redirect_pattern.all_subdomains
             }
             try:
                 Redirect.objects.get_or_create(**kwargs)
