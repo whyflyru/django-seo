@@ -12,7 +12,7 @@ class WithMetadataAdmin(admin.ModelAdmin):
     inlines = [get_inline(Coverage), get_inline(WithSites)]
 
 
-register_seo_admin(admin.site, Coverage)
+register_seo_admin(admin.site, Coverage, ('_site', ))
 register_seo_admin(admin.site, WithSites)
 
 try:

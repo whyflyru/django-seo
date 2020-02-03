@@ -100,7 +100,7 @@ def register_seo_admin(admin_site, metadata_class, filter_list=None):
         class ModelAdmin(model_admin):
             form = get_model_form(metadata_class)
             list_display = model_admin.list_display + get_list_display()
-            if filter_list:
+            if filter_list:  # Дать переменной filter_list имя list_filter нельзя, так как происходит конфликт имен
                 list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('model'), ModelAdmin)
@@ -109,7 +109,7 @@ def register_seo_admin(admin_site, metadata_class, filter_list=None):
         class ViewAdmin(view_admin):
             form = get_view_form(metadata_class)
             list_display = view_admin.list_display + get_list_display()
-            if filter_list:
+            if filter_list:  # Дать переменной filter_list имя list_filter нельзя, так как происходит конфликт имен
                 list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('view'), ViewAdmin)
@@ -118,7 +118,7 @@ def register_seo_admin(admin_site, metadata_class, filter_list=None):
         class PathAdmin(path_admin):
             form = get_path_form(metadata_class)
             list_display = path_admin.list_display + get_list_display()
-            if filter_list:
+            if filter_list:  # Дать переменной filter_list имя list_filter нельзя, так как происходит конфликт имен
                 list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('path'), PathAdmin)
@@ -127,7 +127,7 @@ def register_seo_admin(admin_site, metadata_class, filter_list=None):
         class ModelInstanceAdmin(model_instance_admin):
             form = get_modelinstance_form(metadata_class)
             list_display = model_instance_admin.list_display + get_list_display()
-            if filter_list:
+            if filter_list:  # Дать переменной filter_list имя list_filter нельзя, так как происходит конфликт имен
                 list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('modelinstance'), ModelInstanceAdmin)
