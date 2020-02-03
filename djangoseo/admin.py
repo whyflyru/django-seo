@@ -80,7 +80,7 @@ def get_view_admin(use_site=False, use_subdomains=False):
     })
 
 
-def register_seo_admin(admin_site, metadata_class):
+def register_seo_admin(admin_site, metadata_class, filter_list=None):
     """ Register the backends specified in Meta.backends with the admin """
     use_sites = metadata_class._meta.use_sites
     use_subdomains = metadata_class._meta.use_subdomains
@@ -100,6 +100,8 @@ def register_seo_admin(admin_site, metadata_class):
         class ModelAdmin(model_admin):
             form = get_model_form(metadata_class)
             list_display = model_admin.list_display + get_list_display()
+            if filter_list:  # Cannot give the filter_list variable name 'list_filter', because there is a name conflict
+                list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('model'), ModelAdmin)
 
@@ -107,6 +109,8 @@ def register_seo_admin(admin_site, metadata_class):
         class ViewAdmin(view_admin):
             form = get_view_form(metadata_class)
             list_display = view_admin.list_display + get_list_display()
+            if filter_list:  # Cannot give the filter_list variable name 'list_filter', because there is a name conflict
+                list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('view'), ViewAdmin)
 
@@ -114,6 +118,8 @@ def register_seo_admin(admin_site, metadata_class):
         class PathAdmin(path_admin):
             form = get_path_form(metadata_class)
             list_display = path_admin.list_display + get_list_display()
+            if filter_list:  # Cannot give the filter_list variable name 'list_filter', because there is a name conflict
+                list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('path'), PathAdmin)
 
@@ -121,6 +127,8 @@ def register_seo_admin(admin_site, metadata_class):
         class ModelInstanceAdmin(model_instance_admin):
             form = get_modelinstance_form(metadata_class)
             list_display = model_instance_admin.list_display + get_list_display()
+            if filter_list:  # Cannot give the filter_list variable name 'list_filter', because there is a name conflict
+                list_filter = filter_list
 
         _register_admin(admin_site, metadata_class._meta.get_model('modelinstance'), ModelInstanceAdmin)
 
