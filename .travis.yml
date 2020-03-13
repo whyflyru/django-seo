@@ -1,21 +1,14 @@
 language: python
 python:
-  - "3.4"
-  - "3.5"
   - "3.6"
+  - "3.7"
+  - "3.8"
 env:
-  - DJANGO=1.10 DB=sqlite
-  - DJANGO=1.11 DB=sqlite
-  - DJANGO=2.0 DB=sqlite
-  - DJANGO=2.1 DB=sqlite
-matrix:
-  exclude:
-    - python: "3.4"
-      env: DJANGO=2.1 DB=sqlite
-    - python: "3.5"
-      env: DJANGO=2.1 DB=sqlite
+  - DJANGO_VERSION="Django<2.2" DB=sqlite
+  - DJANGO_VERSION="Django<3" DB=sqlite
+  - DJANGO_VERSION="Django<3.1" DB=sqlite
 install:
-  - pip install -q Django==$DJANGO
+  - pip install -q "${DJANGO_VERSION}"
   - pip install coveralls coverage django-discover-runner
 script:
   - coverage run --rcfile=.coveragerc setup.py test
