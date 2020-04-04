@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 import re
+import six
 
 from django.db import models
-from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import conditional_escape
 
@@ -62,7 +62,7 @@ class MetadataField(object):
                 self.help_text = _('If empty, \"%s\" will be used.') % self.populate_from.value
             elif isinstance(self.populate_from, six.string_types) and self.populate_from in cls._meta.elements:
                 field = cls._meta.elements[self.populate_from]
-                self.help_text = _('If empty, %s will be used.') % field.verbose_name or field.name  
+                self.help_text = _('If empty, %s will be used.') % field.verbose_name or field.name
             elif isinstance(self.populate_from, six.string_types) and hasattr(cls, self.populate_from):
                 populate_from = getattr(cls, self.populate_from, None)
                 if callable(populate_from) and hasattr(populate_from, 'short_description'):
@@ -96,7 +96,7 @@ class Tag(MetadataField):
                  field_kwargs=None, help_text=None):
 
         self.escape_value = escape_value
-        if field_kwargs is None: 
+        if field_kwargs is None:
             field_kwargs = {}
         field_kwargs.setdefault('max_length', max_length)
         field_kwargs.setdefault('default', "")
@@ -116,10 +116,10 @@ VALID_META_NAME = re.compile(r"[A-z][A-z0-9_:.-]*$")
 
 
 class MetaTag(MetadataField):
-    def __init__(self, name=None, head=True, verbose_name=None, editable=True, 
+    def __init__(self, name=None, head=True, verbose_name=None, editable=True,
                  populate_from=NotSet, valid_tags=None, max_length=511, choices=None,
                  field=models.CharField, field_kwargs=None, help_text=None):
-        if field_kwargs is None: 
+        if field_kwargs is None:
             field_kwargs = {}
         field_kwargs.setdefault('max_length', max_length)
         field_kwargs.setdefault('default', "")
@@ -142,14 +142,14 @@ class MetaTag(MetadataField):
 
 
 class KeywordTag(MetaTag):
-    def __init__(self, name=None, head=True, verbose_name=None, editable=True, 
+    def __init__(self, name=None, head=True, verbose_name=None, editable=True,
                  populate_from=NotSet, valid_tags=None, max_length=511, choices=None,
                  field=models.CharField, field_kwargs=None, help_text=None):
         if name is None:
             name = "keywords"
         if valid_tags is None:
             valid_tags = []
-        super(KeywordTag, self).__init__(name, head, verbose_name, editable, 
+        super(KeywordTag, self).__init__(name, head, verbose_name, editable,
                         populate_from, valid_tags, max_length, choices, field,
                         field_kwargs, help_text)
 
@@ -162,10 +162,10 @@ class KeywordTag(MetaTag):
 
 # TODO: if max_length is given, use a CharField and pass it through
 class Raw(MetadataField):
-    def __init__(self, head=True, editable=True, populate_from=NotSet, 
+    def __init__(self, head=True, editable=True, populate_from=NotSet,
                  verbose_name=None, valid_tags=None, choices=None, field=models.TextField,
                  field_kwargs=None, help_text=None):
-        if field_kwargs is None: 
+        if field_kwargs is None:
             field_kwargs = {}
         field_kwargs.setdefault('default', "")
         field_kwargs.setdefault('blank', True)

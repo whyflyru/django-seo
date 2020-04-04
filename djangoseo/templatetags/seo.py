@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from django.utils import six
+import six
 from django import template
 from djangoseo.seo import get_metadata, get_linked_metadata
 from django.template import VariableDoesNotExist

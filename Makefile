@@ -74,8 +74,8 @@ env-prepare: ## install environment
 test: clean-test ## run tests quickly with the default Python
 	$(PRP) $(PTARGS) $(TEST)
 
-test-all: ## run tests on every Python version with tox
-	pipenv run tox
+test-travis: ## run tests on every Python version with tox
+	pipenv run python setup.py test
 
 test-all-parallel: ## run tests on every Python version with tox in parallel
 	pipenv run tox -p auto

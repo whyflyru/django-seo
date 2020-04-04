@@ -4,6 +4,7 @@ import re
 import importlib
 
 import django
+import six
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
@@ -12,12 +13,8 @@ from django.utils.html import conditional_escape
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.utils import six
-if django.VERSION < (2, 0):
-    from django.core.urlresolvers import RegexURLResolver, RegexURLPattern, Resolver404, get_resolver, clear_url_caches
-else:
-    from django.urls import (URLResolver as RegexURLResolver, URLPattern as RegexURLPattern, Resolver404, get_resolver,
-                             clear_url_caches)
+from django.urls import (URLResolver as RegexURLResolver, URLPattern as RegexURLPattern, Resolver404, get_resolver,
+                         clear_url_caches)
 
 logger = logging.getLogger(__name__)
 

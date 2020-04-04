@@ -10,6 +10,7 @@ tests/settings_local.py
 /migrations/
 *.egg-info
 *.egg
+.eggs/
 .DS_Store
 .idea
 .ropeproject/

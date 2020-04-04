@@ -5,13 +5,12 @@
 #    * Make backends optional: Meta.backends = (path, modelinstance/model, view)
 import hashlib
 import logging
+import six
+import functools
 from collections import OrderedDict
 
 from django.db import models
-from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
-from django.utils.functional import curry
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -32,7 +31,6 @@ logger = logging.getLogger(__name__)
 registry = OrderedDict()
 
 
-@python_2_unicode_compatible
 class FormattedMetadata(object):
     """ Allows convenient access to selected metadata.
         Metadata for each field may be sourced from any one of the relevant instances passed.
@@ -135,7 +133,6 @@ class FormattedMetadata(object):
         return value
 
 
-@python_2_unicode_compatible
 class BoundMetadataField(object):
     """ An object to help provide templates with access to a "bound" metadata field. """
 
@@ -396,8 +393,8 @@ def register_signals():
     for metadata_class in registry.values():
         model_instance = metadata_class._meta.get_model('modelinstance')
         if model_instance is not None:
-            update_callback = curry(_update_callback, model_class=model_instance)
-            delete_callback = curry(_delete_callback, model_class=model_instance)
+            update_callback = functools.partial(_update_callback, model_class=model_instance)
+            delete_callback = functools.partial(_delete_callback, model_class=model_instance)
 
             ## Connect the models listed in settings to the update callback.
             for model in metadata_class._meta.seo_models:
@@ -408,5 +405,5 @@ def register_signals():
     if getattr(settings, 'SEO_USE_REDIRECTS', False):
         redirects_models = import_tracked_models()
         for model in redirects_models:
-            redirects_callback = curry(_handle_redirects_callback, model_class=model_instance)
+            redirects_callback = functools.partial(_handle_redirects_callback, model_class=model_instance)
             models.signals.pre_save.connect(redirects_callback, sender=model, weak=False)

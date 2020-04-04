@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
+import six
 from collections import OrderedDict
 
 from django.apps import apps
-from django.utils import six
 
 try:
     from django.utils.text import camel_case_to_spaces

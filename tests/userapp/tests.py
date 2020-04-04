@@ -33,10 +33,7 @@ from .views import product_detail
 from .models import Page, Product, NoPath, Tag, Category
 from .seo import Coverage, WithSites, WithI18n, WithBackends, WithSubdomains
 
-if django.VERSION < (2, 0):
-    from django.core.urlresolvers import reverse
-else:
-    from django.urls import reverse
+from django.urls import reverse
 
 """ Test suite for SEO framework.
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+import six
 from collections import OrderedDict
 
-from django.utils import six
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
 from django.db.utils import IntegrityError
 from django.conf import settings
 from django.db import models
@@ -17,7 +16,7 @@ from django.template import Template, Context
 from djangoseo.utils import resolve_to_name, NotSet, Literal
 
 RESERVED_FIELD_NAMES = ('_metadata', '_path', '_content_type', '_object_id',
-                        '_content_object', '_view', '_site', 'objects', 
+                        '_content_object', '_view', '_site', 'objects',
                         '_resolve_value', '_set_context', 'id', 'pk')
 
 backend_registry = OrderedDict()
@@ -186,7 +185,7 @@ class MetadataBackend(object):
 
     @staticmethod
     def validate(options):
-        """ Validates the application of this backend to a given metadata 
+        """ Validates the application of this backend to a given metadata
         """
 
 
@@ -407,7 +406,7 @@ class ModelInstanceBackend(MetadataBackend):
                 )
 
             objects = self.get_manager(options)()
-        
+
             def __unicode__(self):
                 return self._path
 
@@ -467,7 +466,6 @@ class ModelBackend(MetadataBackend):
             return queryset.filter(_content_type=content_type)
 
     def get_model(self, options):
-        @python_2_unicode_compatible
         class ModelMetadataBase(MetadataBaseModel):
             __instance = None
             __context = None
@@ -540,7 +538,7 @@ class ModelBackend(MetadataBackend):
 
     @staticmethod
     def validate(options):
-        """ Validates the application of this backend to a given metadata 
+        """ Validates the application of this backend to a given metadata
         """
         try:
             if options.backends.index('modelinstance') > options.backends.index('model'):

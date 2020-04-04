@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import django
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
-if django.VERSION < (2, 0):
-    from django.core.urlresolvers import reverse
-else:
-    from django.urls import reverse
+from django.urls import reverse
 
 
-@python_2_unicode_compatible
 class Page(models.Model):
     title = models.CharField(max_length=255, default="", blank=True)
     type = models.CharField(max_length=50, default="", blank=True)
@@ -23,7 +17,6 @@ class Page(models.Model):
         return self.title or self.content
 
 
-@python_2_unicode_compatible
 class Product(models.Model):
     meta_description = models.TextField(default="")
     meta_keywords = models.CharField(max_length=255, default="")
@@ -48,7 +41,6 @@ class NoPath(models.Model):
     pass
 
 
-@python_2_unicode_compatible
 class Tag(models.Model):
     name = models.CharField(max_length=255, default="")
 

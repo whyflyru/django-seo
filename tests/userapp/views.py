@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from __future__ import unicode_literals
 
-from django.shortcuts import get_object_or_404, render, render_to_response
+from django.shortcuts import get_object_or_404, render
 
 from userapp.models import Page, Tag, Product
 
@@ -28,4 +28,4 @@ def my_view(request, text):
 
 def my_other_view(request, text):
     context = {'text': text}
-    return render_to_response('my_view.html', context)
+    return render(request, 'my_view.html', context)
