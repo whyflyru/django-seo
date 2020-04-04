@@ -4,12 +4,16 @@ python:
   - "3.7"
   - "3.8"
 env:
-  - DJANGO_VERSION="Django<2.2" DB=sqlite
-  - DJANGO_VERSION="Django<3" DB=sqlite
-  - DJANGO_VERSION="Django<3.1" DB=sqlite
+  - DJANGO_VERSION="Django<2.2"
+  - DJANGO_VERSION="Django<3"
+  - DJANGO_VERSION="Django<3.1"
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database djseo;' -U postgres;
 install:
   - pip install -q "${DJANGO_VERSION}"
-  - pip install coveralls coverage django-discover-runner
+  - pip install coveralls coverage django-discover-runner psycopg2
 script:
   - coverage run --rcfile=.coveragerc setup.py test
 after_success:
