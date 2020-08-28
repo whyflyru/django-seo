@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import hashlib
 
 import django
-from django.utils import six
+try:
+    from django.utils import six
+except ImportError:
+    import six
 from django.test import TestCase, override_settings
 from django.http import Http404
 try:

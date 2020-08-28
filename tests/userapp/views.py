@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.shortcuts import get_object_or_404, render
 
-from userapp.models import Page, Tag, Product
+from .models import Page, Tag, Product
 
 
 def page_detail(request, page_type):

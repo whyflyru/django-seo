@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from django.contrib import admin
 
 from djangoseo.admin import register_seo_admin, get_inline, auto_register_inlines
-from userapp.seo import Coverage, WithSites, WithSEOModels
-from userapp.models import Product, Page, Category, Tag, NoPath
+from .seo import Coverage, WithSites, WithSEOModels
+from .models import Product, Page, Tag, NoPath
 
 
 class WithMetadataAdmin(admin.ModelAdmin):

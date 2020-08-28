@@ -19,7 +19,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.flatpages',
     'djangoseo',
-    'userapp',
+    'tests.userapp',
 )
 
 MIDDLEWARE = (
@@ -83,7 +83,7 @@ SEO_MODELS = ('userapp',)
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 SEO_USE_REDIRECTS = True
-SEO_TRACKED_MODELS = ('userapp.models.Page',)
+SEO_TRACKED_MODELS = ('tests.userapp.models.Page',)
 
 try:
     from settings_local import *

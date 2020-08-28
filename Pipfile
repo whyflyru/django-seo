@@ -4,13 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-tox = "*"
 "flake8" = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-django = "*"
 "psycopg2-binary" = "*"
 "Django" = "*"
+pytest-socket = "*"
+pytest-pythonpath = "*"
 
 [packages]
 
