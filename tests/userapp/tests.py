@@ -522,7 +522,15 @@ class Formatting(TestCase):
     def test_html(self):
         """ Tests html generation is performed correctly.
         """
-        exp = """<title>The <strong>Title</strong></title>
+        if django.VERSION >= (3, 0):
+            exp = """<title>The <strong>Title</strong></title>
+<hs:tag>The <em>Heading</em></hs:tag>
+<meta name="keywords" content="Some, keywords&quot;, with,  other, chars&#x27;" />
+<meta name="hs:metatag" content="A   description with &quot; interesting&#x27; chars." />
+<meta name="author" content="seo" />
+<meta name="author" content="seo" />"""
+        else:
+            exp = """<title>The <strong>Title</strong></title>
 <hs:tag>The <em>Heading</em></hs:tag>
 <meta name="keywords" content="Some, keywords&quot;, with,  other, chars&#39;" />
 <meta name="hs:metatag" content="A   description with &quot; interesting&#39; chars." />
@@ -533,17 +541,24 @@ class Formatting(TestCase):
 
     def test_description(self):
         """ Tests the tag2 is cleaned correctly. """
-        exp = "A   description with &quot; interesting&#39; chars."
+        if django.VERSION >= (3, 0):
+            exp = "A   description with &quot; interesting&#x27; chars."
+        else:
+            exp = "A   description with &quot; interesting&#39; chars."
         self.assertEqual(self.metadata.description.value, exp)
         exp = '<meta name="hs:metatag" content="%s" />' % exp
         self.assertEqual(six.text_type(self.metadata.description), exp)
 
     def test_keywords(self):
         """ Tests keywords are cleaned correctly. """
-        exp = "Some, keywords&quot;, with,  other, chars&#39;"
+        if django.VERSION >= (3, 0):
+            exp = "Some, keywords&quot;, with,  other, chars&#x27;"
+        else:
+            exp = "Some, keywords&quot;, with,  other, chars&#39;"
+
         self.assertEqual(self.metadata.keywords.value, exp)
         exp = '<meta name="keywords" content="%s" />' % exp
-        self.assertEqual(self.metadata.keywords, exp)
+        self.assertEqual(six.text_type(self.metadata.keywords), exp)
 
     def test_inline_tags(self):
         """ Tests the title is cleaned correctly. """
@@ -1297,8 +1312,8 @@ class RedirectsMiddlewareTest(TestCase):
     def test_max_len_path(self):
         middleware = RedirectsMiddleware()
         request_factory = RequestFactory()
-        max_length = 2000-len(reverse('userapp_product_detail', args=(1,)))
-        product_id = '1'*max_length
+        max_length = 2000 - len(reverse('userapp_product_detail', args=(1,)))
+        product_id = '1' * max_length
         product_path = reverse('userapp_product_detail', args=(product_id,))
 
         response = self.client.get(product_path)
