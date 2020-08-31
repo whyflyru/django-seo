@@ -543,7 +543,7 @@ class Formatting(TestCase):
         exp = "Some, keywords&quot;, with,  other, chars&#39;"
         self.assertEqual(self.metadata.keywords.value, exp)
         exp = '<meta name="keywords" content="%s" />' % exp
-        self.assertEqual(six.text_type(self.metadata.keywords), exp)
+        self.assertEqual(self.metadata.keywords, exp)
 
     def test_inline_tags(self):
         """ Tests the title is cleaned correctly. """
@@ -1228,6 +1228,77 @@ class RedirectsMiddlewareTest(TestCase):
         middleware = RedirectsMiddleware()
         request_factory = RequestFactory()
         product_id = '123'
+        product_path = reverse('userapp_product_detail', args=(product_id,))
+
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+
+        current_site = Site.objects.get_current()
+        redirect_path = reverse('userapp_page_detail', args=('product',))
+        redirect_pattern1 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site
+        )
+        redirect_pattern2 = RedirectPattern.objects.create(
+            url_pattern='/products/(\d+)/',
+            redirect_path=redirect_path,
+            site=current_site,
+            all_subdomains=True,
+        )
+
+        # main scenario
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.old_path, product_path)
+        self.assertEqual(redirect.new_path, redirect_path)
+        self.assertEqual(redirect.subdomain, redirect_pattern1.subdomain)
+        self.assertEqual(redirect.all_subdomains, redirect_pattern1.all_subdomains)
+
+        # with subdomain
+        redirect.delete()
+        redirect_pattern1.subdomain = 'msk'
+        redirect_pattern1.save()
+        request = request_factory.get(product_path)
+        request.subdomain = 'msk'
+        try:
+            product_detail(request, product_id)
+        except Http404 as e:
+            middleware.process_exception(request, e)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.subdomain, redirect_pattern1.subdomain)
+        self.assertEqual(redirect.all_subdomains, redirect_pattern1.all_subdomains)
+
+        # all subdomain flag
+        Redirect.objects.first().delete()
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(Redirect.objects.count(), 1)
+        redirect = Redirect.objects.first()
+        self.assertEqual(redirect.subdomain, redirect_pattern2.subdomain)
+        self.assertEqual(redirect.all_subdomains, redirect_pattern2.all_subdomains)
+        redirect_pattern2.delete()
+        redirect.delete()
+
+        # with another site
+        another_site = Site.objects.create(
+            domain='example.net',
+            name='example.net'
+        )
+        redirect_pattern1.site = another_site
+        redirect_pattern1.save()
+        response = self.client.get(product_path)
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Redirect.objects.count(), 0)
+
+    def test_max_len_path(self):
+        middleware = RedirectsMiddleware()
+        request_factory = RequestFactory()
+        max_length = 2000-len(reverse('userapp_product_detail', args=(1,)))
+        product_id = '1'*max_length
         product_path = reverse('userapp_product_detail', args=(product_id,))
 
         response = self.client.get(product_path)
