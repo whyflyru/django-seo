@@ -51,7 +51,10 @@ def _pattern_resolve_to_name(pattern, path):
         elif hasattr(pattern, '_callback_str'):
             name = pattern._callback_str
         else:
-            name = "%s.%s" % (pattern.callback.__module__, pattern.callback.func_name)
+            try:
+                name = "%s.%s" % (pattern.callback.__module__, pattern.callback.__name__)
+            except AttributeError:
+                name = "%s.%s" % (pattern.callback.__module__, pattern.callback.func_name)
         return name
 
 
