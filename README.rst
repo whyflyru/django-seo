@@ -43,7 +43,7 @@ As you can see it is very flexible, but there is much more than this simple exam
 Installation
 ============
 
-The easiest way to install Django SEO is to use use ``pip``, if you have it::
+The easiest way to install Django SEO is to use ``pip``, if you have it::
 
     pip install django-seo
 
